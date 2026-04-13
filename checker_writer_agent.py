@@ -4,22 +4,20 @@ checker_writer_agent.py — генератор checker'ов по исходни�
 
 Usage (как kilo code / оркестратор):
     python main.py --repo /path/to/repo --llm-command "python checker_writer_agent.py"
-
-    Промпт на stdin  — plain text, содержимое файлов компонента
-    Ответ в stdout   — plain text, готовый Python-код checker'а
+    Промпт на stdin — plain text, ответ в stdout — plain text.
 
 Usage (прямой запуск):
     python checker_writer_agent.py /path/to/zlib
     python checker_writer_agent.py /path/to/zlib --out ./checkers/
+    python checker_writer_agent.py /path/to/zlib --examples ./checkers/
     python checker_writer_agent.py /path/to/third_party/ --batch --out ./checkers/
     python checker_writer_agent.py /path/to/zlib --dry-run
 
-Configuration via environment variables (recommended):
+Configuration via environment variables:
     export LLM_BASE_URL="http://localhost:11434/v1"
     export LLM_MODEL="qwen2.5-coder:32b"
     export LLM_API_KEY="ollama"
 """
-
 from __future__ import annotations
 
 import ast
@@ -28,134 +26,320 @@ import json
 import os
 import re
 import sys
-import tempfile
-import textwrap
-import urllib.error
 import urllib.request
-from typing import Dict, List, Optional, Tuple
+import urllib.error
+from typing import List, Optional, Tuple
 
 
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
 
-BASE_URL: str = os.environ.get("LLM_BASE_URL", "http://localhost:11434/v1")
-MODEL: str = os.environ.get("LLM_MODEL", "qwen2.5-coder:32b")
-API_KEY: str = os.environ.get("LLM_API_KEY", os.environ.get("ANTHROPIC_API_KEY", "ollama"))
-MAX_TOKENS: int = 4096
+BASE_URL:    str = os.environ.get("LLM_BASE_URL", "http://localhost:11434/v1")
+MODEL:       str = os.environ.get("LLM_MODEL",    "qwen2.5-coder:32b")
+API_KEY:     str = os.environ.get("LLM_API_KEY",  os.environ.get("ANTHROPIC_API_KEY", "ollama"))
+MAX_TOKENS:  int = 4096
 TIMEOUT_SEC: int = 180
-
-# Сколько раз разрешаем ремонтировать checker после первичной генерации.
-MAX_REPAIR_PASSES: int = 2
 
 
 # ---------------------------------------------------------------------------
-# System prompt
+# Few-shot examples — архетипы из реальной кодовой базы
+#
+# Каждый пример демонстрирует один из 4 паттернов:
+#   1. VERSION_PATTERNS only          — Asn1c    (configure.ac + AC_INIT regex)
+#   2. custom check_file_versions_only — Jemalloc (ChangeLog, нестандартный источник)
+#   3. check_meta с обходом путей     — OpenCV   (version.hpp глубоко в дереве)
+#   4. MAJOR+MINOR+PATCH комбинация   — OpenCV   (несколько #define)
+# ---------------------------------------------------------------------------
+
+FEW_SHOT_EXAMPLES = '''\
+## Examples from the real checker codebase
+
+Study these examples carefully. They show all supported patterns.
+Your output must follow the same style exactly.
+
+### Example 1 — VERSION_PATTERNS only (configure.ac + AC_INIT)
+Use this pattern when the version is in configure.ac or CMakeLists.txt as a single string.
+
+```python
+# -*- coding: utf-8 -*-
+from checkers.base_checker import BaseChecker
+
+class Asn1c(BaseChecker):
+    VENDOR = "asn1c_project"
+    PRODUCT = "asn1c"
+    LINK_SOURCE = "https://github.com/vlm/asn1c.git"
+
+    CONTAINS_PATTERNS = [
+        r"ASN\\.1\\s+Compiler",
+        r"Abstract\\s+Syntax\\s+Notation\\s+1",
+    ]
+
+    SOURCE_FILENAME_PATTERNS = [
+        r"(^|/)configure\\.ac$",
+    ]
+
+    VERSION_PATTERNS = [
+        r"AC_INIT\\(\\s*\\[asn1c\\]\\s*,\\s*\\[([^\\]]+)\\]",
+    ]
+```
+
+### Example 2 — VERSION_PATTERNS only (header #define)
+Use this pattern when the version is a single #define string in a header file.
+
+```python
+# -*- coding: utf-8 -*-
+from checkers.base_checker import BaseChecker
+
+class Mongoose(BaseChecker):
+    VENDOR = "cesanta"
+    PRODUCT = "mongoose"
+    LINK_SOURCE = "https://github.com/cesanta/mongoose.git"
+
+    CONTAINS_PATTERNS = [
+        r"Sergey\\s+Lyubka",
+    ]
+
+    SOURCE_FILENAME_PATTERNS = [
+        r"(^|/)mongoose\\.h$",
+        r"(^|/)mg\\.h$",
+    ]
+
+    VERSION_PATTERNS = [
+        r\'#\\s*define\\s+(?:MONGOOSE_VERSION|MG_VERSION)\\s+"([\\d\\.]+)"\',
+    ]
+```
+
+### Example 3 — custom check_file_versions_only (ChangeLog, non-standard source)
+Use this pattern when the version lives in a non-standard file like ChangeLog.
+
+```python
+# -*- coding: utf-8 -*-
+import os
+import re
+from checkers.base_checker import BaseChecker
+
+class Jemalloc(BaseChecker):
+    VENDOR = "jemalloc"
+    PRODUCT = "jemalloc"
+    LINK_SOURCE = "https://github.com/jemalloc/jemalloc.git"
+
+    CONTAINS_PATTERNS = [
+        r"jemalloc/internal",
+    ]
+
+    SOURCE_FILENAME_PATTERNS = [
+        r"(^|/)ChangeLog$",
+    ]
+
+    RX_VERSION  = re.compile(r"jemalloc/([0-9]+(?:\\.[0-9]+){1,3})", re.IGNORECASE)
+    RX_CHANGELOG = re.compile(r"^\\*\\s*([0-9]+\\.[0-9]+\\.[0-9]+)\\s*\\(", re.MULTILINE)
+
+    def check_file_versions_only(self, content: str, path: str):
+        if not self.match_source_filename(path):
+            return []
+        s = content or ""
+        src_abs = os.path.abspath(path)
+        m = self.RX_VERSION.search(s)
+        if m:
+            return [self.make_result(m.group(1), src_abs, extra={"version_source_abs": src_abs})]
+        if os.path.basename(path) == "ChangeLog" and "https://github.com/jemalloc" in s:
+            m = self.RX_CHANGELOG.search(s)
+            if m:
+                return [self.make_result(m.group(1), src_abs, extra={"version_source_abs": src_abs})]
+        return []
+```
+
+### Example 4 — check_meta + MAJOR/MINOR/PATCH combination
+Use this pattern when:
+  - the version header is nested deep in the source tree, OR
+  - the version is split across multiple #define MAJOR / MINOR / PATCH
+
+```python
+# -*- coding: utf-8 -*-
+import os
+import re
+from checkers.base_checker import BaseChecker
+
+class OpenCV(BaseChecker):
+    VENDOR = "opencv"
+    PRODUCT = "opencv"
+    LINK_SOURCE = "https://github.com/opencv/opencv.git"
+
+    CONTAINS_PATTERNS = [
+        r"This file is part of OpenCV project\\.",
+    ]
+
+    RX_MAJOR  = re.compile(r"#define\\s+CV_VERSION_MAJOR\\s+(\\d+)")
+    RX_MINOR  = re.compile(r"#define\\s+CV_VERSION_MINOR\\s+(\\d+)")
+    RX_REV    = re.compile(r"#define\\s+CV_VERSION_REVISION\\s+(\\d+)")
+    RX_STATUS = re.compile(r\'#define\\s+CV_VERSION_STATUS\\s+"([^"]+)"\')
+
+    def _extract_version(self, text: str):
+        s = text or ""
+        a = self.RX_MAJOR.search(s)
+        b = self.RX_MINOR.search(s)
+        c = self.RX_REV.search(s)
+        if not (a and b and c):
+            return None
+        ver = f"{a.group(1)}.{b.group(1)}.{c.group(1)}"
+        st = self.RX_STATUS.search(s)
+        return f"{ver}{st.group(1).strip()}" if st and st.group(1).strip() else ver
+
+    def check_meta(self, directory: str):
+        for rel in (
+            os.path.join("opencv2", "core", "version.hpp"),
+            os.path.join("include", "opencv2", "core", "version.hpp"),
+        ):
+            full = os.path.join(directory, rel)
+            if not os.path.isfile(full):
+                continue
+            try:
+                with open(full, "r", encoding="utf-8", errors="ignore") as f:
+                    text = f.read()
+            except OSError:
+                continue
+            ver = self._extract_version(text)
+            if not ver:
+                continue
+            return [self.make_result(ver, full, extra={
+                "version_source_abs": full,
+                "origin": f"meta:{rel.replace(os.sep, \'/')}",
+            })]
+        return []
+```
+
+---
+
+## Pattern selection guide
+
+Look at the source files provided and choose ONE of:
+
+| Pattern | When to use |
+|---------|-------------|
+| VERSION_PATTERNS only | Version in configure.ac / CMakeLists.txt / single-line `#define VERSION "x.y.z"` |
+| custom check_file_versions_only | Non-standard source: ChangeLog, custom version file, libtool versioning |
+| check_meta + MAJOR/MINOR/PATCH | Version split across 3 defines, OR header nested deep in the tree |
+| check_meta only | Version is ONLY discoverable by walking the directory tree |
+
+Never mix patterns unnecessarily. If VERSION_PATTERNS works, do not write check_meta.
+'''
+
+
+# ---------------------------------------------------------------------------
+# System prompt (hard rules only — examples are in FEW_SHOT_EXAMPLES)
 # ---------------------------------------------------------------------------
 
 SYSTEM_PROMPT = """\
 You are an expert at writing Python checkers that detect open-source library versions in source trees.
 
-You will receive the contents of files from a third-party component directory.
-Your task: write a complete, ready-to-use Python checker class that inherits from BaseChecker.
+You will receive:
+  1. Source files from a third-party component directory
+  2. Real examples from the existing checker codebase
+  3. HINT lines with VENDOR / PRODUCT / LINK_SOURCE to use verbatim
 
-## Hard requirements
+Your task: write ONE complete, ready-to-use Python checker class.
 
-- Return ONLY valid Python source code.
+""" + FEW_SHOT_EXAMPLES + """
+
+## Hard rules
+
+- Return ONLY valid Python source code — no prose, no markdown fences
 - Start with exactly: # -*- coding: utf-8 -*-
-- Import BaseChecker exactly as:
-  from .base import BaseChecker
-- Use Python str regexes only. Never use bytes regexes such as rb"...".
-- Use os.path.join(), never manual path concatenation like f"{directory}/file".
-- In check_meta():
-  - use os.path.isfile(path) before opening any file
-  - catch OSError, not only FileNotFoundError
-  - return [] on any read/open failure
-  - verify the file or directory clearly belongs to this component before extracting version
-- Never use generic metadata files (CHANGES, CHANGELOG, README, VERSION.txt) unless:
-  - the directory clearly belongs to this component, and
-  - the file text explicitly mentions this component
-- Never use substring path checks like "configure.ac" in path.
-  Use os.path.basename(path).lower() == "configure.ac".
-- Never emit a version from a generic plain semver regex alone unless the file is a clearly authoritative version source for this component.
-- Prefer configure.ac, CMakeLists.txt, version headers, or the main public header.
-- Keep SOURCE_FILENAME_PATTERNS short: 1-3 patterns max.
-- Avoid check_meta() entirely if authoritative version extraction already works in check_file_versions_only().
-
-## BaseChecker API
-
-class BaseChecker:
-    VENDOR: str = ""
-    PRODUCT: str = ""
-    LINK_SOURCE: str = ""
-
-    CONTAINS_PATTERNS: List[str] = []
-    VERSION_PATTERNS: List[str] = []
-    SOURCE_FILENAME_PATTERNS: List[str] = []
-
-    def make_result(self, version: str, source_path: str, extra: dict = None) -> dict:
-        ...
-
-    def match_source_filename(self, path: str) -> bool:
-        ...
-
-    def check_file_versions_only(self, content: str, path: str) -> List[dict]:
-        ...
-
-    def check_meta(self, directory: str) -> List[dict]:
-        ...
-
-## Rules
-
-1. CLASS NAME: CamelCase from product name.
-   Examples:
-   - openssl -> Openssl
-   - libjpeg-turbo -> LibjpegTurbo
-   - xapian-core -> XapianCore
-
-2. Use exact VENDOR / PRODUCT / LINK_SOURCE values from user hints if provided.
-
-3. SOURCE_FILENAME_PATTERNS:
-   - only the most version-authoritative files
-   - prefer version.h, configure.ac, CMakeLists.txt, public header
-   - keep the list short — 1-3 patterns max
-   - use anchored regexes like r"(^|/)configure\\.ac$"
-
-4. CONTAINS_PATTERNS:
-   - 1-3 distinctive strings as fallback
-   - use strings, not bytes
-   - good: unique copyright lines with names, unique taglines, rare identifiers
-   - bad: generic words like "version", "library", "copyright"
-
-5. check_file_versions_only:
-   - first line must be:
-         if not self.match_source_filename(path):
-             return []
-   - use compiled class-level regex attributes named RX_...
-   - use os.path.basename(path).lower() for filename branching
-   - return findings only through self.make_result(...)
-   - use absolute path:
-         abs_path = os.path.abspath(path)
-         return [self.make_result(version, abs_path, extra={"version_source_abs": abs_path})]
-   - for MAJOR/MINOR/PATCH defines: combine them
-
-6. check_meta:
-   - implement it only when really needed
-   - if not needed, return []
-   - if implemented:
-     - use os.path.isfile()
-     - use os.path.join()
-     - catch OSError
-     - verify ownership before opening/using file
-     - verify content mentions this component before extracting version
-
-## Output format
-
-Return ONLY valid Python source code.
-No prose.
-No markdown fences.
-Start directly with: # -*- coding: utf-8 -*-
+- Import BaseChecker exactly as: from checkers.base_checker import BaseChecker
+- Use str regexes only — never bytes regexes like rb"..."
+- In check_file_versions_only(): first line must be `if not self.match_source_filename(path): return []`
+- In check_meta(): use os.path.join(), os.path.isfile(), catch OSError, verify ownership
+- Use os.path.abspath(path) for version_source_abs
+- Use VENDOR / PRODUCT / LINK_SOURCE exactly as given in the HINT
+- If VERSION_PATTERNS is sufficient — do NOT write check_file_versions_only or check_meta
 """
+
+
+# ---------------------------------------------------------------------------
+# RAG — поиск похожего checker'а из существующей коллекции
+# ---------------------------------------------------------------------------
+
+# Ключевые слова, по которым классифицируем "тип" компонента из исходников
+_RAG_SOURCE_SIGNALS = [
+    # (regex_to_detect_in_sources,  tag)
+    (re.compile(r"AC_INIT\s*\(", re.IGNORECASE),            "configure.ac"),
+    (re.compile(r"project\s*\(.*VERSION", re.IGNORECASE),   "cmake_version"),
+    (re.compile(r"cmake_minimum_required", re.IGNORECASE),  "cmake"),
+    (re.compile(r"#define\s+\w+_VERSION_MAJOR", re.IGNORECASE), "major_minor_patch"),
+    (re.compile(r"#define\s+\w+_VERSION\s+\"", re.IGNORECASE),  "define_string"),
+    (re.compile(r"ChangeLog|CHANGELOG", re.MULTILINE),       "changelog"),
+    (re.compile(r"meson\.build", re.IGNORECASE),             "meson"),
+]
+
+_RAG_CHECKER_TAGS: dict[str, list[str]] = {
+    # tag -> список паттернов которые ищем в теле checker'а
+    "configure.ac":      ["configure.ac", "AC_INIT"],
+    "cmake_version":     ["CMakeLists", "cmake", "project("],
+    "cmake":             ["CMakeLists", "cmake"],
+    "major_minor_patch": ["MAJOR", "MINOR", "PATCH", "REVISION"],
+    "define_string":     ["VERSION_STRING", "define.*VERSION.*\""],
+    "changelog":         ["ChangeLog", "CHANGELOG"],
+    "meson":             ["meson.build", "meson"],
+}
+
+
+def _read_checker_file(path: str) -> str:
+    try:
+        with open(path, "r", encoding="utf-8", errors="ignore") as f:
+            return f.read()
+    except Exception:
+        return ""
+
+
+def _detect_source_tags(source_context: str) -> list[str]:
+    """Определить какие паттерны версионирования встречаются в исходниках."""
+    tags = []
+    for rx, tag in _RAG_SOURCE_SIGNALS:
+        if rx.search(source_context):
+            tags.append(tag)
+    return tags
+
+
+def _score_checker_for_tags(checker_code: str, tags: list[str]) -> int:
+    """Насколько checker из коллекции соответствует найденным тегам."""
+    score = 0
+    low = checker_code.lower()
+    for tag in tags:
+        for kw in _RAG_CHECKER_TAGS.get(tag, []):
+            if kw.lower() in low:
+                score += 1
+    return score
+
+
+def find_similar_checker(examples_dir: str, source_context: str) -> Optional[str]:
+    """
+    Найти из папки examples_dir checker наиболее похожий на текущий компонент.
+    Возвращает содержимое файла или None.
+    """
+    if not examples_dir or not os.path.isdir(examples_dir):
+        return None
+
+    tags = _detect_source_tags(source_context)
+    if not tags:
+        return None
+
+    best_score = 0
+    best_code  = None
+
+    for fname in os.listdir(examples_dir):
+        if not fname.endswith(".py"):
+            continue
+        fpath = os.path.join(examples_dir, fname)
+        code  = _read_checker_file(fpath)
+        if not code:
+            continue
+        score = _score_checker_for_tags(code, tags)
+        if score > best_score:
+            best_score = score
+            best_code  = code
+
+    return best_code if best_score > 0 else None
 
 
 # ---------------------------------------------------------------------------
@@ -169,7 +353,7 @@ def call_llm(prompt: str) -> str:
         "max_tokens": MAX_TOKENS,
         "messages": [
             {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": prompt},
+            {"role": "user",   "content": prompt},
         ],
         "temperature": 0.0,
     }).encode("utf-8")
@@ -178,7 +362,7 @@ def call_llm(prompt: str) -> str:
         url,
         data=payload,
         headers={
-            "Content-Type": "application/json",
+            "Content-Type":  "application/json",
             "Authorization": f"Bearer {API_KEY}",
         },
         method="POST",
@@ -200,7 +384,7 @@ def call_llm(prompt: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Entry point — stdin mode
+# Entry point — stdin mode (kilo code / orchestrator)
 # ---------------------------------------------------------------------------
 
 def main() -> None:
@@ -227,43 +411,35 @@ _MED = {
     "package.json", "build.gradle", "pom.xml",
 }
 _LOW_META = {
-    "changelog", "changelog.md", "changes", "changes.md", "news", "news.md",
+    "changelog", "changelog.md", "changes", "changes.md",
     "readme", "readme.md", "readme.rst", "license", "copying",
 }
 _CODE_EXTS = {".c", ".cc", ".cxx", ".cpp", ".h", ".hh", ".hpp", ".hxx", ".ipp"}
-_META_EXTS = {
-    ".ac", ".in", ".cmake", ".mk", ".am", ".m4",
-    ".txt", ".md", ".rst", ".json", ".yml", ".yaml"
-}
+_META_EXTS = {".ac", ".in", ".cmake", ".mk", ".am", ".m4",
+              ".txt", ".md", ".rst", ".json", ".yml", ".yaml"}
 _SKIP = re.compile(
     r"(^|[/\\])(test|tests|testing|doc|docs|example|examples|"
     r"bench|benchmarks|samples|unittests?)([/\\]|$)",
     re.IGNORECASE,
 )
 
-MAX_FILES = 20
+MAX_FILES      = 20
 MAX_FILE_BYTES = 32_000
-MAX_CHARS = 4_000
+MAX_CHARS      = 4_000
 
 
 def _score(rel: str, bn: str) -> int:
     if _SKIP.search(rel):
         return -1
-
-    if bn in _HIGH:
-        return 100
-    if bn in _MED:
-        return 60
-    if bn in _LOW_META:
-        return 15
-
+    if bn in _HIGH:       return 100
+    if bn in _MED:        return 60
+    if bn in _LOW_META:   return 15
     ext = os.path.splitext(bn)[1]
     if ext in _CODE_EXTS and any(k in bn for k in ("version", "config", "ver")):
         return 80
     if ext in _CODE_EXTS:
         return max(10, 50 - (rel.count("/") + rel.count("\\")) * 5)
-    if ext in _META_EXTS:
-        return 20
+    if ext in _META_EXTS: return 20
     return 5
 
 
@@ -273,10 +449,10 @@ def _collect(root: str) -> List[Tuple[str, str]]:
         dirs[:] = [d for d in dirs if not d.startswith(".")]
         for fname in files:
             full = os.path.join(dirpath, fname)
-            rel = os.path.relpath(full, root).replace("\\", "/")
-            score = _score(rel, fname.lower())
-            if score >= 0:
-                scored.append((score, full, rel))
+            rel  = os.path.relpath(full, root).replace("\\", "/")
+            s    = _score(rel, fname.lower())
+            if s >= 0:
+                scored.append((s, full, rel))
     scored.sort(key=lambda x: (-x[0], x[2]))
     return [(f, r) for _, f, r in scored]
 
@@ -288,36 +464,51 @@ def _snippet(path: str) -> str:
             if size > MAX_FILE_BYTES:
                 head = fh.read(MAX_CHARS // 2)
                 fh.seek(max(0, size - MAX_CHARS // 2))
-                tail = fh.read(MAX_CHARS // 2)
-                return head + "\n...[truncated]...\n" + tail
+                return head + "\n...[truncated]...\n" + fh.read(MAX_CHARS // 2)
             return fh.read(MAX_CHARS)
     except Exception:
         return ""
 
 
-def build_prompt(root: str) -> str:
-    """Собрать содержимое файлов компонента в один промпт для LLM."""
-    parts = [
-        f"Analyze these source files and write a checker for: {os.path.abspath(root)}\n",
-        "Runtime requirements:\n"
-        "- Import BaseChecker exactly as: from .base import BaseChecker\n"
-        "- Use str regexes only, never bytes regexes\n"
-        "- Use os.path.join() in check_meta()\n"
-        "- check_meta() must use os.path.isfile() before open()\n"
-        "- check_meta() must catch OSError\n"
-        "- Avoid generic CHANGES/README/VERSION.txt unless clearly necessary\n"
-        "- Prefer authoritative version sources such as configure.ac, CMakeLists.txt, version headers\n"
-        "- If check_meta() is not necessary, return []\n",
-    ]
+def build_prompt(root: str, hint: str = "", examples_dir: str = "") -> str:
+    """
+    Собрать промпт для LLM:
+      - содержимое файлов компонента
+      - HINT с vendor/product/url (если передан)
+      - ближайший похожий checker из коллекции (RAG, если examples_dir задан)
+    """
+    file_parts = []
     for full, rel in _collect(root)[:MAX_FILES]:
         content = _snippet(full)
         if content.strip():
-            parts.append(f"=== FILE: {rel} ===\n{content}\n")
+            file_parts.append(f"=== FILE: {rel} ===\n{content}\n")
+
+    source_context = "\n".join(file_parts)
+
+    parts = [f"Write a checker for the component at: {os.path.abspath(root)}\n"]
+
+    # RAG — найти похожий checker и показать его как "closest example"
+    if examples_dir:
+        similar = find_similar_checker(examples_dir, source_context)
+        if similar:
+            parts.append(
+                "## Closest existing checker from your codebase\n"
+                "Use this as your primary style reference for THIS specific component:\n\n"
+                "```python\n" + similar + "\n```\n"
+            )
+
+    # HINT — vendor/product/url задаётся снаружи, LLM не угадывает
+    if hint:
+        parts.append(hint)
+
+    parts.append("## Source files\n")
+    parts.extend(file_parts)
+
     return "\n".join(parts)
 
 
 # ---------------------------------------------------------------------------
-# Post-processing — syntax, policy, smoke
+# Post-processing — strip fences, validate syntax, fix if broken
 # ---------------------------------------------------------------------------
 
 def _strip_fences(text: str) -> str:
@@ -327,259 +518,29 @@ def _strip_fences(text: str) -> str:
     return text.strip()
 
 
-def _syntax_check(code: str) -> Tuple[bool, str]:
-    try:
-        ast.parse(code)
-        return True, ""
-    except SyntaxError as e:
-        return False, str(e)
-
-
-def _syntax_fix(code: str, error_text: str) -> str:
-    repaired = call_llm(
-        "Fix the Python syntax error in this checker.\n"
-        "Return ONLY valid Python source code. No markdown.\n\n"
-        f"Syntax error:\n{error_text}\n\n"
-        f"Code:\n{code}"
-    )
-    return _strip_fences(repaired)
-
-
-def validate_checker_policy(code: str) -> List[str]:
-    errors: List[str] = []
-
-    if not code.lstrip().startswith("# -*- coding: utf-8 -*-"):
-        errors.append("missing utf-8 header at the start of the file")
-
-    allowed_import = re.search(
-        r"^\s*from\s+\.base\s+import\s+BaseChecker\s*$",
-        code,
-        re.MULTILINE,
-    )
-    if not allowed_import:
-        errors.append("BaseChecker must be imported exactly as: from .base import BaseChecker")
-
-    if re.search(r"\brb[\"']", code):
-        errors.append("bytes regexes are forbidden; use str regexes")
-
-    if re.search(r"from\s+\.(?:base_checker|basecheck|base_class)\s+import\s+BaseChecker", code):
-        errors.append("wrong BaseChecker import path")
-
-    if re.search(r"""f["']\{directory\}[\\/]" """, code):
-        errors.append("manual path concatenation with f-string is forbidden; use os.path.join")
-
-    if re.search(r"""directory\s*\+\s*["'][\\/]" """, code):
-        errors.append("manual path concatenation is forbidden; use os.path.join")
-
-    if re.search(r"""if\s+["'][^"']+["']\s+in\s+path\s*:""", code):
-        errors.append("substring path checks are forbidden; use os.path.basename(path).lower()")
-
-    if "def check_meta(" in code:
-        if "os.path.isfile" not in code:
-            errors.append("check_meta() must use os.path.isfile() before opening files")
-        if "except OSError" not in code:
-            errors.append("check_meta() must catch OSError")
-        if "os.path.join" not in code:
-            errors.append("check_meta() must use os.path.join()")
-
-    return errors
-
-
-def _repair_quality(code: str, issues: List[str]) -> str:
-    prompt = textwrap.dedent(f"""\
-        Rewrite this Python checker so it satisfies all requirements.
-
-        Requirements:
-        - import BaseChecker exactly as: from .base import BaseChecker
-        - use str regexes only, never bytes regexes
-        - use os.path.join() in check_meta()
-        - use os.path.isfile() before opening any file in check_meta()
-        - catch OSError in check_meta()
-        - avoid generic metadata files unless ownership is verified
-        - never use substring path checks like "configure.ac" in path
-        - use os.path.basename(path).lower() for filename branching
-        - if check_meta() is unnecessary, implement it as return []
-
-        Detected issues:
-        {chr(10).join("- " + x for x in issues)}
-
-        Return ONLY valid Python source code. No markdown.
-
-        Code:
-        {code}
-    """)
-    repaired = call_llm(prompt)
-    return _strip_fences(repaired)
-
-
-def _prepare_code_for_smoke_exec(code: str) -> str:
-    code = re.sub(
-        r"^\s*from\s+\.(?:base|base_checker|basecheck|base_class)\s+import\s+BaseChecker\s*$",
-        "",
-        code,
-        flags=re.MULTILINE,
-    )
-    code = re.sub(
-        r"^\s*from\s+checkers\.base\s+import\s+BaseChecker\s*$",
-        "",
-        code,
-        flags=re.MULTILINE,
-    )
-
-    stub = textwrap.dedent("""\
-        import os
-        import re
-        from typing import Dict, List, Optional, Set
-
-        class BaseChecker:
-            CONTAINS_PATTERNS = []
-            VERSION_PATTERNS = []
-            SOURCE_FILENAME_PATTERNS = []
-            VENDOR = ""
-            PRODUCT = ""
-            LINK_SOURCE = ""
-
-            def __init__(self) -> None:
-                self._compiled_source_name_patterns = None
-
-            def _compile_source_name_patterns(self):
-                pats = []
-                for p in getattr(self, "SOURCE_FILENAME_PATTERNS", []) or []:
-                    pats.append(re.compile(p, re.IGNORECASE))
-                return pats
-
-            def match_source_filename(self, path: str) -> bool:
-                if not getattr(self, "SOURCE_FILENAME_PATTERNS", None):
-                    return False
-                if self._compiled_source_name_patterns is None:
-                    self._compiled_source_name_patterns = self._compile_source_name_patterns()
-                norm = (path or "").replace("\\\\", "/")
-                for rx in self._compiled_source_name_patterns:
-                    if rx.search(norm):
-                        return True
-                return False
-
-            def make_result(self, version: Optional[str], source_path: str, extra: Optional[Dict] = None) -> Dict:
-                out = {
-                    "name": self.PRODUCT,
-                    "version": (version or "unknown").strip(),
-                    "version_source": os.path.abspath(source_path) if source_path else "inline",
-                    "vendor": self.VENDOR,
-                    "link": self.LINK_SOURCE,
-                    "cpe": "",
-                }
-                if extra:
-                    out.update(extra)
-                return out
-    """)
-    return stub + "\n" + code
-
-
-def smoke_test_checker_code(code: str) -> List[str]:
-    """
-    Лёгкий runtime-smoke-test без импорта пакета checkers.
-    Мы подставляем stub BaseChecker и исполняем код в отдельном namespace.
-    """
-    errors: List[str] = []
-    prepared = _prepare_code_for_smoke_exec(code)
-    ns: Dict[str, object] = {}
-
-    try:
-        exec( պատրաստված := prepared, ns, ns)  # noqa: S102
-    except Exception as e:
-        return [f"checker code failed to exec in smoke test: {e}"]
-
-    base_cls = ns.get("BaseChecker")
-    checker_cls = None
-    for obj in ns.values():
-        if isinstance(obj, type) and obj is not base_cls and base_cls is not None:
-            try:
-                if issubclass(obj, base_cls):
-                    checker_cls = obj
-                    break
-            except TypeError:
-                continue
-
-    if checker_cls is None:
-        return ["checker class not found in generated code"]
-
-    try:
-        checker = checker_cls()
-    except Exception as e:
-        return [f"checker class failed to instantiate: {e}"]
-
-    try:
-        checker.check_file_versions_only("", "dummy.txt")
-    except Exception as e:
-        errors.append(f"check_file_versions_only crashed on dummy input: {e}")
-
-    with tempfile.TemporaryDirectory() as tmp:
-        try:
-            checker.check_meta(tmp)
-        except Exception as e:
-            errors.append(f"check_meta crashed on empty directory: {e}")
-
-        dummy_file = os.path.join(tmp, "dummy.txt")
-        try:
-            with open(dummy_file, "w", encoding="utf-8") as fh:
-                fh.write("dummy")
-        except Exception:
-            pass
-
-        try:
-            checker.check_file_versions_only("dummy", dummy_file)
-        except Exception as e:
-            errors.append(f"check_file_versions_only crashed on temp file: {e}")
-
-    return errors
-
-
 def validate_and_fix(code: str) -> str:
     code = _strip_fences(code)
+    try:
+        ast.parse(code)
+        return code
+    except SyntaxError as e:
+        print(f"[WARN] Syntax error, fixing: {e}", file=sys.stderr)
 
-    ok, err_text = _syntax_check(code)
-    if not ok:
-        print(f"[WARN] Syntax error, retrying fix: {err_text}", file=sys.stderr)
-        code = _syntax_fix(code, err_text)
-        ok, err_text = _syntax_check(code)
-        if not ok:
-            print(f"[ERROR] Still broken after syntax fix: {err_text}", file=sys.stderr)
-            return f"# SYNTAX ERROR: {err_text}\n# Fix manually\n\n{code}"
-
-    for attempt in range(1, MAX_REPAIR_PASSES + 1):
-        policy_errors = validate_checker_policy(code)
-        smoke_errors = smoke_test_checker_code(code)
-
-        if not policy_errors and not smoke_errors:
-            return code
-
-        issues = policy_errors + smoke_errors
-        print(f"[WARN] Checker quality issues (pass {attempt}): {issues}", file=sys.stderr)
-
-        code = _repair_quality(code, issues)
-        ok, err_text = _syntax_check(code)
-        if not ok:
-            print(f"[WARN] Syntax error after quality repair: {err_text}", file=sys.stderr)
-            code = _syntax_fix(code, err_text)
-            ok, err_text = _syntax_check(code)
-            if not ok:
-                print(f"[ERROR] Still broken after repair: {err_text}", file=sys.stderr)
-                return f"# SYNTAX ERROR: {err_text}\n# Fix manually\n\n{code}"
-
-    final_policy_errors = validate_checker_policy(code)
-    final_smoke_errors = smoke_test_checker_code(code)
-    if final_policy_errors or final_smoke_errors:
-        print(
-            f"[WARN] Returning checker with remaining issues: "
-            f"{final_policy_errors + final_smoke_errors}",
-            file=sys.stderr,
-        )
-
-    return code
+    fixed = _strip_fences(call_llm(
+        "Fix the Python syntax error. Return ONLY valid Python, no markdown.\n"
+        f"Error: {e}\n\nCode:\n{code}"
+    ))
+    try:
+        ast.parse(fixed)
+        print("[INFO] Syntax fixed OK", file=sys.stderr)
+        return fixed
+    except SyntaxError as e2:
+        print(f"[ERROR] Still broken: {e2}", file=sys.stderr)
+        return f"# SYNTAX ERROR: {e2}\n# Fix manually\n\n{fixed}"
 
 
 # ---------------------------------------------------------------------------
-# CLI mode helpers
+# CLI helpers
 # ---------------------------------------------------------------------------
 
 def _save(code: str, component_dir: str, out_dir: str) -> str:
@@ -593,7 +554,14 @@ def _save(code: str, component_dir: str, out_dir: str) -> str:
     return path
 
 
-def process_one(root: str, out_dir: Optional[str], dry_run: bool, verbose: bool) -> None:
+def process_one(
+    root: str,
+    out_dir: Optional[str],
+    dry_run: bool,
+    verbose: bool,
+    hint: str = "",
+    examples_dir: str = "",
+) -> None:
     root = os.path.abspath(root)
     print(f"[INFO] {os.path.basename(root)}", file=sys.stderr)
 
@@ -608,23 +576,28 @@ def process_one(root: str, out_dir: Optional[str], dry_run: bool, verbose: bool)
             print(f"  {rel}", file=sys.stderr)
         return
 
-    prompt = build_prompt(root)
+    prompt = build_prompt(root, hint=hint, examples_dir=examples_dir)
     if verbose:
         print(f"[DEBUG] prompt {len(prompt)} chars", file=sys.stderr)
 
     print("[INFO]   calling LLM...", file=sys.stderr)
-    raw = call_llm(prompt)
+    raw  = call_llm(prompt)
     code = validate_and_fix(raw)
 
     if out_dir:
-        saved = _save(code, root, out_dir)
-        print(f"[OK]   {saved}", file=sys.stderr)
+        print(f"[OK]   {_save(code, root, out_dir)}", file=sys.stderr)
     else:
         sys.stdout.write(code)
         sys.stdout.flush()
 
 
-def process_batch(root: str, out_dir: Optional[str], dry_run: bool, verbose: bool) -> None:
+def process_batch(
+    root: str,
+    out_dir: Optional[str],
+    dry_run: bool,
+    verbose: bool,
+    examples_dir: str = "",
+) -> None:
     subdirs = sorted(
         e.path for e in os.scandir(root)
         if e.is_dir() and not e.name.startswith(".")
@@ -633,7 +606,8 @@ def process_batch(root: str, out_dir: Optional[str], dry_run: bool, verbose: boo
     ok = err = 0
     for sub in subdirs:
         try:
-            process_one(sub, out_dir=out_dir, dry_run=dry_run, verbose=verbose)
+            process_one(sub, out_dir=out_dir, dry_run=dry_run,
+                        verbose=verbose, examples_dir=examples_dir)
             ok += 1
         except Exception as e:
             print(f"[ERROR] {os.path.basename(sub)}: {e}", file=sys.stderr)
@@ -652,11 +626,19 @@ def cli() -> None:
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    ap.add_argument("path")
-    ap.add_argument("--out", metavar="DIR")
-    ap.add_argument("--batch", action="store_true")
-    ap.add_argument("--dry-run", action="store_true")
-    ap.add_argument("--verbose", action="store_true")
+    ap.add_argument("path",
+                    help="Component directory (or root dir with --batch)")
+    ap.add_argument("--out",      metavar="DIR",
+                    help="Write generated .py files here")
+    ap.add_argument("--examples", metavar="DIR",
+                    help="Directory with existing checkers for RAG lookup "
+                         "(e.g. ./checkers/). Enables automatic similar-example injection.")
+    ap.add_argument("--batch",    action="store_true",
+                    help="Process each subdirectory separately")
+    ap.add_argument("--dry-run",  action="store_true",
+                    help="List files without calling LLM")
+    ap.add_argument("--verbose",  action="store_true",
+                    help="Print debug info")
     args = ap.parse_args()
 
     if not os.path.isdir(args.path):
@@ -664,10 +646,14 @@ def cli() -> None:
     if not args.dry_run and not API_KEY:
         sys.exit("[ERROR] set LLM_API_KEY or ANTHROPIC_API_KEY")
 
+    examples_dir = args.examples or ""
+
     if args.batch:
-        process_batch(args.path, args.out, args.dry_run, args.verbose)
+        process_batch(args.path, args.out, args.dry_run, args.verbose,
+                      examples_dir=examples_dir)
     else:
-        process_one(args.path, args.out, args.dry_run, args.verbose)
+        process_one(args.path, args.out, args.dry_run, args.verbose,
+                    examples_dir=examples_dir)
 
 
 # ---------------------------------------------------------------------------
