@@ -22,6 +22,10 @@ import sys
 from dataclasses import dataclass
 from typing import Optional
 
+# init_updater живёт рядом с этим скриптом
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from init_updater import register_checker_from_saved_file
+
 
 # ---------------------------------------------------------------------------
 # Список компонентов — URL известен заранее, агент не угадывает
@@ -121,11 +125,13 @@ def run_agent(
     out_dir: str,
     agent_script: str,
     examples_dir: str = "",
+    init_path: str = "",
 ) -> bool:
     """
     Запустить checker_writer_agent для компонента.
     Vendor/product/url передаются как HINT — LLM не угадывает.
     Если examples_dir задан — агент найдёт похожий checker через RAG.
+    Если init_path задан — сразу регистрирует checker в __init__.py.
     """
     global _agent_mod
     if _agent_mod is None:
@@ -154,6 +160,18 @@ def run_agent(
 
     out_path = mod._save(code, repo_dir, out_dir)
     print(f"  [OK]   {out_path}", flush=True)
+
+    # Регистрируем в __init__.py если задан
+    if init_path:
+        try:
+            changed, cls = register_checker_from_saved_file(init_path, out_path)
+            if changed:
+                print(f"  [INIT] registered {cls} in {init_path}", flush=True)
+            else:
+                print(f"  [INIT] already registered, skipped", flush=True)
+        except Exception as e:
+            print(f"  [WARN] __init__.py update failed: {e}", flush=True)
+
     return True
 
 
@@ -177,6 +195,9 @@ def main() -> None:
     ap.add_argument("--examples", metavar="DIR", default="",
                     help="Directory with existing checkers for RAG lookup. "
                          "Pass your ./checkers/ to let the agent find similar examples.")
+    ap.add_argument("--init",     metavar="FILE", default="",
+                    help="Path to checkers/__init__.py — new checkers will be "
+                         "registered here automatically after generation.")
     ap.add_argument("--agent",  default=os.path.join(os.path.dirname(__file__),
                                                       "checker_writer_agent.py"),
                     metavar="FILE", help="Path to checker_writer_agent.py")
@@ -239,7 +260,8 @@ def main() -> None:
 
         # 2. Generate checker
         success = run_agent(comp, repo_dir, args.out, args.agent,
-                            examples_dir=args.examples)
+                            examples_dir=args.examples,
+                            init_path=args.init)
         if success:
             ok += 1
         else:
