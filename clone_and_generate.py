@@ -103,32 +103,47 @@ def clone(comp: Component, repos_dir: str, depth: int = 1) -> Optional[str]:
 # Запуск агента
 # ---------------------------------------------------------------------------
 
-def run_agent(comp: Component, repo_dir: str, out_dir: str, agent_script: str) -> bool:
-    """
-    Запустить checker_writer_agent.py для компонента.
-    Передаём промпт на stdin — файлы компонента + подсказки по vendor/product/url.
-    """
-    # Импортируем функции агента напрямую чтобы не делать subprocess
-    sys.path.insert(0, os.path.dirname(os.path.abspath(agent_script)))
+def _load_agent(agent_script: str):
+    """Загрузить модуль checker_writer_agent один раз и закешировать."""
     import importlib.util
+    sys.path.insert(0, os.path.dirname(os.path.abspath(agent_script)))
     spec = importlib.util.spec_from_file_location("cwa", agent_script)
     mod  = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
+    return mod
 
-    # Строим промпт: содержимое файлов + явные подсказки
-    file_context = mod.build_prompt(repo_dir)
-    hint = (
-        f"\nHINT — use these exact values in the checker:\n"
-        f"  LINK_SOURCE = {comp.url!r}\n"
-    )
+_agent_mod = None  # ленивый кеш
+
+
+def run_agent(
+    comp: Component,
+    repo_dir: str,
+    out_dir: str,
+    agent_script: str,
+    examples_dir: str = "",
+) -> bool:
+    """
+    Запустить checker_writer_agent для компонента.
+    Vendor/product/url передаются как HINT — LLM не угадывает.
+    Если examples_dir задан — агент найдёт похожий checker через RAG.
+    """
+    global _agent_mod
+    if _agent_mod is None:
+        _agent_mod = _load_agent(agent_script)
+    mod = _agent_mod
+
+    # HINT — точные значения которые LLM должен использовать verbatim
+    hint_lines = ["## HINT — use these exact values, do not change them"]
+    hint_lines.append(f"LINK_SOURCE = {comp.url!r}")
     if comp.vendor:
-        hint += f"  VENDOR      = {comp.vendor!r}\n"
+        hint_lines.append(f"VENDOR      = {comp.vendor!r}")
     if comp.product:
-        hint += f"  PRODUCT     = {comp.product!r}\n"
+        hint_lines.append(f"PRODUCT     = {comp.product!r}")
+    hint = "\n".join(hint_lines) + "\n"
 
-    prompt = file_context + hint
-
-    print(f"  [LLM]  calling agent ({len(prompt)} chars)...", flush=True)
+    prompt = mod.build_prompt(repo_dir, hint=hint, examples_dir=examples_dir)
+    print(f"  [LLM]  prompt {len(prompt)} chars, RAG={'yes' if examples_dir else 'no'}",
+          flush=True)
 
     try:
         raw  = mod.call_llm(prompt)
@@ -159,6 +174,9 @@ def main() -> None:
                     help="Directory to clone repos into (default: ./repos)")
     ap.add_argument("--out",    default="./checkers", metavar="DIR",
                     help="Directory to write generated checkers (default: ./checkers)")
+    ap.add_argument("--examples", metavar="DIR", default="",
+                    help="Directory with existing checkers for RAG lookup. "
+                         "Pass your ./checkers/ to let the agent find similar examples.")
     ap.add_argument("--agent",  default=os.path.join(os.path.dirname(__file__),
                                                       "checker_writer_agent.py"),
                     metavar="FILE", help="Path to checker_writer_agent.py")
@@ -220,7 +238,8 @@ def main() -> None:
             continue
 
         # 2. Generate checker
-        success = run_agent(comp, repo_dir, args.out, args.agent)
+        success = run_agent(comp, repo_dir, args.out, args.agent,
+                            examples_dir=args.examples)
         if success:
             ok += 1
         else:
