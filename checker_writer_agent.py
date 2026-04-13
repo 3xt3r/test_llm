@@ -247,12 +247,14 @@ Your task: write ONE complete, ready-to-use Python checker class.
 - Return ONLY valid Python source code — no prose, no markdown fences
 - Start with exactly: # -*- coding: utf-8 -*-
 - Import BaseChecker exactly as: from checkers.base_checker import BaseChecker
+- Always add `import os` and `import re` at the top if you use them
 - Use str regexes only — never bytes regexes like rb"..."
 - In check_file_versions_only(): first line must be `if not self.match_source_filename(path): return []`
 - In check_meta(): use os.path.join(), os.path.isfile(), catch OSError, verify ownership
-- Use os.path.abspath(path) for version_source_abs
+- Use os.path.abspath(path) — NOT self.get_absolute_path(), NOT self.abspath(), these do NOT exist
+- The ONLY methods available on self are: match_source_filename(), make_result(), check_file_versions_only(), check_meta()
+- Do NOT invent methods like self.get_absolute_path(), self.read_file(), self.get_version(), self.compile_pattern()
 - Use VENDOR / PRODUCT / LINK_SOURCE exactly as given in the HINT
-- If VERSION_PATTERNS is sufficient — do NOT write check_file_versions_only or check_meta
 """
 
 
@@ -566,9 +568,44 @@ def _ensure_imports(code: str) -> str:
     return insert_block + code
 
 
+def _fix_hallucinated_methods(code: str) -> str:
+    """
+    Заменяет галлюцинированные методы которых нет в BaseChecker
+    на правильные эквиваленты.
+    """
+    fixes = [
+        # self.get_absolute_path(x)  →  os.path.abspath(x)
+        (re.compile(r"\bself\.get_absolute_path\s*\(([^)]+)\)"), r"os.path.abspath(\1)"),
+        # self.get_abs_path(x)  →  os.path.abspath(x)
+        (re.compile(r"\bself\.get_abs_path\s*\(([^)]+)\)"),      r"os.path.abspath(\1)"),
+        # self.abspath(x)  →  os.path.abspath(x)
+        (re.compile(r"\bself\.abspath\s*\(([^)]+)\)"),           r"os.path.abspath(\1)"),
+        # self.read_file(x)  →  open(x).read()  — редко, но бывает
+        (re.compile(r"\bself\.read_file\s*\(([^)]+)\)"),
+         r'open(\1, "r", encoding="utf-8", errors="ignore").read()'),
+        # self.get_version(...)  — нет такого, убираем через замену на None
+        (re.compile(r"\bself\.get_version\s*\([^)]*\)"),         r"None"),
+        # self.compile_pattern(x)  →  re.compile(x)
+        (re.compile(r"\bself\.compile_pattern\s*\(([^)]+)\)"),   r"re.compile(\1)"),
+    ]
+
+    changed = []
+    for rx, replacement in fixes:
+        new_code, n = rx.subn(replacement, code)
+        if n:
+            changed.append(rx.pattern[:40])
+            code = new_code
+
+    if changed:
+        print(f"[FIX]  replaced hallucinated methods: {changed}", file=sys.stderr)
+
+    return code
+
+
 def validate_and_fix(code: str) -> str:
     code = _strip_fences(code)
-    code = _ensure_imports(code)   # ← гарантируем os/re перед парсингом
+    code = _fix_hallucinated_methods(code)  # ← убираем несуществующие методы
+    code = _ensure_imports(code)            # ← гарантируем os/re
     try:
         ast.parse(code)
         return code
@@ -579,6 +616,7 @@ def validate_and_fix(code: str) -> str:
         "Fix the Python syntax error. Return ONLY valid Python, no markdown.\n"
         f"Error: {e}\n\nCode:\n{code}"
     ))
+    fixed = _fix_hallucinated_methods(fixed)
     fixed = _ensure_imports(fixed)
     try:
         ast.parse(fixed)
