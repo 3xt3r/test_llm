@@ -518,8 +518,57 @@ def _strip_fences(text: str) -> str:
     return text.strip()
 
 
+# Модули которые должны быть импортированы если код их использует
+_REQUIRED_IMPORTS = [
+    ("os",       re.compile(r"\bos\s*\.\s*\w+|\bos\.path\b")),
+    ("re",       re.compile(r"\bre\s*\.\s*(compile|search|match|findall|sub|IGNORECASE|MULTILINE)\b")),
+    ("tempfile", re.compile(r"\btempfile\b")),
+]
+
+# Строка после которой вставляем недостающие импорты
+_CODING_RE    = re.compile(r"^#\s*-\*-\s*coding[^\n]*\n", re.MULTILINE)
+_IMPORT_INS_RE = re.compile(r"^(from\s+\S+\s+import\s+\S+|import\s+\S+)", re.MULTILINE)
+
+
+def _ensure_imports(code: str) -> str:
+    """
+    Детектирует использование os/re/etc. и добавляет недостающие import-строки.
+    Вставляет их сразу после coding-заголовка (или в начало файла).
+    """
+    missing = []
+    for module, usage_rx in _REQUIRED_IMPORTS:
+        already = re.search(
+            rf"^\s*(import\s+{module}\b|from\s+{module}\s+import\b)",
+            code, re.MULTILINE
+        )
+        if not already and usage_rx.search(code):
+            missing.append(f"import {module}")
+
+    if not missing:
+        return code
+
+    insert_block = "\n".join(missing) + "\n"
+    print(f"[FIX]  adding missing imports: {missing}", file=sys.stderr)
+
+    # Вставить после # -*- coding ... -*-
+    m = _CODING_RE.search(code)
+    if m:
+        pos = m.end()
+        return code[:pos] + insert_block + code[pos:]
+
+    # Вставить перед первым import/from
+    m = _IMPORT_INS_RE.search(code)
+    if m:
+        pos = m.start()
+        return code[:pos] + insert_block + code[pos:]
+
+    # Fallback — в начало
+    return insert_block + code
+
+
 def validate_and_fix(code: str) -> str:
     code = _strip_fences(code)
+    code = _ensure_imports(code)   # ← гарантируем os/re перед парсингом
     try:
         ast.parse(code)
         return code
@@ -530,6 +579,7 @@ def validate_and_fix(code: str) -> str:
         "Fix the Python syntax error. Return ONLY valid Python, no markdown.\n"
         f"Error: {e}\n\nCode:\n{code}"
     ))
+    fixed = _ensure_imports(fixed)
     try:
         ast.parse(fixed)
         print("[INFO] Syntax fixed OK", file=sys.stderr)
