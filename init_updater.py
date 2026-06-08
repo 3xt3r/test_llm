@@ -1,154 +1,162 @@
-(venv) kali@kali-RedmiBook-16:~/Desktop/oss_checks$ sudo docker logs dependency-track-apiserver-1 -f 2>&1 | grep -iE "osv|github|mirror|error"
-2026-06-06 10:15:30,097 INFO [NvdMirrorServlet] Initializing NVD mirror
-2026-06-06 10:15:37,068 INFO [OsvDownloadTask] Google OSV mirroring is disabled. No ecosystem selected.
-2026-06-06 10:16:27,040 INFO [VulnDbSyncTask] Starting VulnDB mirror synchronization task
-2026-06-06 10:16:27,040 INFO [VulnDbSyncTask] VulnDB mirror directory does not exist. Skipping.
-2026-06-06 10:16:27,052 INFO [NistMirrorTask] Starting NIST mirroring task
-2026-06-06 10:16:27,052 INFO [NistMirrorTask] Mirrored data directory created successfully
-2026-06-06 10:16:27,058 INFO [NistMirrorTask] Downloading files at Sat Jun 06 10:16:27 UTC 2026
-2026-06-06 10:16:27,059 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2026.json.gz
-2026-06-06 10:16:27,721 INFO [NistMirrorTask] Downloading...
-2026-06-06 10:16:29,720 INFO [NistMirrorTask] Uncompressing nvdcve-2.0-2026.json.gz
-2026-06-06 10:20:27,447 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2026.meta
-2026-06-06 10:20:28,547 INFO [NistMirrorTask] Downloading...
-2026-06-06 10:20:28,548 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2025.json.gz
-2026-06-06 10:20:28,950 INFO [NistMirrorTask] Downloading...
-2026-06-06 10:20:30,094 INFO [NistMirrorTask] Uncompressing nvdcve-2.0-2025.json.gz
-2026-06-06 10:30:21,639 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2025.meta
-2026-06-06 10:30:22,564 INFO [NistMirrorTask] Downloading...
-2026-06-06 10:30:22,575 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2024.json.gz
-2026-06-06 10:30:22,804 INFO [NistMirrorTask] Downloading...
-2026-06-06 10:30:24,152 INFO [NistMirrorTask] Uncompressing nvdcve-2.0-2024.json.gz
-2026-06-06 10:38:30,894 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2024.meta
-2026-06-06 10:38:31,684 INFO [NistMirrorTask] Downloading...
-2026-06-06 10:38:31,689 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2023.json.gz
-2026-06-06 10:38:31,888 INFO [NistMirrorTask] Downloading...
-2026-06-06 10:38:33,695 INFO [NistMirrorTask] Uncompressing nvdcve-2.0-2023.json.gz
-2026-06-06 10:46:08,189 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2023.meta
-2026-06-06 10:46:08,687 INFO [NistMirrorTask] Downloading...
-2026-06-06 10:46:08,689 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2022.json.gz
-2026-06-06 10:46:09,001 INFO [NistMirrorTask] Downloading...
-2026-06-06 10:46:10,156 INFO [NistMirrorTask] Uncompressing nvdcve-2.0-2022.json.gz
-2026-06-06 10:52:53,802 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2022.meta
-2026-06-06 10:52:54,526 INFO [NistMirrorTask] Downloading...
-2026-06-06 10:52:54,536 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2021.json.gz
-2026-06-06 10:52:54,730 INFO [NistMirrorTask] Downloading...
-2026-06-06 10:52:56,118 INFO [NistMirrorTask] Uncompressing nvdcve-2.0-2021.json.gz
-2026-06-06 10:58:35,194 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2021.meta
-2026-06-06 10:58:35,627 INFO [NistMirrorTask] Downloading...
-2026-06-06 10:58:35,628 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2020.json.gz
-2026-06-06 10:58:35,769 INFO [NistMirrorTask] Downloading...
-2026-06-06 10:58:36,784 INFO [NistMirrorTask] Uncompressing nvdcve-2.0-2020.json.gz
-2026-06-06 11:03:43,748 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2020.meta
-2026-06-06 11:03:44,450 INFO [NistMirrorTask] Downloading...
-2026-06-06 11:03:44,451 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2019.json.gz
-2026-06-06 11:03:44,760 INFO [NistMirrorTask] Downloading...
-2026-06-06 11:03:45,802 INFO [NistMirrorTask] Uncompressing nvdcve-2.0-2019.json.gz
-2026-06-06 11:07:36,451 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2019.meta
-2026-06-06 11:07:37,049 INFO [NistMirrorTask] Downloading...
-2026-06-06 11:07:37,051 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2018.json.gz
-2026-06-06 11:07:37,361 INFO [NistMirrorTask] Downloading...
-2026-06-06 11:07:38,163 INFO [NistMirrorTask] Uncompressing nvdcve-2.0-2018.json.gz
-2026-06-06 11:11:15,690 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2018.meta
-2026-06-06 11:11:16,469 INFO [NistMirrorTask] Downloading...
-2026-06-06 11:11:16,473 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2017.json.gz
-2026-06-06 11:11:16,799 INFO [NistMirrorTask] Downloading...
-2026-06-06 11:11:17,497 INFO [NistMirrorTask] Uncompressing nvdcve-2.0-2017.json.gz
-2026-06-06 11:15:02,431 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2017.meta
-2026-06-06 11:15:03,193 INFO [NistMirrorTask] Downloading...
-2026-06-06 11:15:03,194 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2016.json.gz
-2026-06-06 11:15:03,500 INFO [NistMirrorTask] Downloading...
-2026-06-06 11:15:04,446 INFO [NistMirrorTask] Uncompressing nvdcve-2.0-2016.json.gz
-2026-06-06 11:17:36,518 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2016.meta
-2026-06-06 11:17:37,298 INFO [NistMirrorTask] Downloading...
-2026-06-06 11:17:37,304 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2015.json.gz
-2026-06-06 11:17:37,610 INFO [NistMirrorTask] Downloading...
-2026-06-06 11:17:38,292 INFO [NistMirrorTask] Uncompressing nvdcve-2.0-2015.json.gz
-2026-06-06 11:19:47,824 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2015.meta
-2026-06-06 11:19:48,567 INFO [NistMirrorTask] Downloading...
-2026-06-06 11:19:48,569 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2014.json.gz
-2026-06-06 11:19:48,772 INFO [NistMirrorTask] Downloading...
-2026-06-06 11:19:49,768 INFO [NistMirrorTask] Uncompressing nvdcve-2.0-2014.json.gz
-2026-06-06 11:22:08,769 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2014.meta
-2026-06-06 11:22:09,563 INFO [NistMirrorTask] Downloading...
-2026-06-06 11:22:09,565 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2013.json.gz
-2026-06-06 11:22:09,723 INFO [NistMirrorTask] Downloading...
-2026-06-06 11:22:10,903 INFO [NistMirrorTask] Uncompressing nvdcve-2.0-2013.json.gz
-2026-06-06 11:24:46,690 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2013.meta
-2026-06-06 11:24:47,357 INFO [NistMirrorTask] Downloading...
-2026-06-06 11:24:47,367 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2012.json.gz
-2026-06-06 11:24:47,739 INFO [NistMirrorTask] Downloading...
-2026-06-06 11:24:48,636 INFO [NistMirrorTask] Uncompressing nvdcve-2.0-2012.json.gz
-2026-06-06 11:27:08,151 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2012.meta
-2026-06-06 11:27:08,967 INFO [NistMirrorTask] Downloading...
-2026-06-06 11:27:08,971 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2011.json.gz
-2026-06-06 11:27:09,274 INFO [NistMirrorTask] Downloading...
-2026-06-06 11:27:10,054 INFO [NistMirrorTask] Uncompressing nvdcve-2.0-2011.json.gz
-2026-06-06 11:29:12,043 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2011.meta
-2026-06-06 11:29:12,863 INFO [NistMirrorTask] Downloading...
-2026-06-06 11:29:12,865 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2010.json.gz
-2026-06-06 11:29:13,176 INFO [NistMirrorTask] Downloading...
-2026-06-06 11:29:13,920 INFO [NistMirrorTask] Uncompressing nvdcve-2.0-2010.json.gz
-2026-06-06 11:31:06,499 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2010.meta
-2026-06-06 11:31:07,641 INFO [NistMirrorTask] Downloading...
-2026-06-06 11:31:07,643 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2009.json.gz
-2026-06-06 11:31:07,846 INFO [NistMirrorTask] Downloading...
-2026-06-06 11:31:08,841 INFO [NistMirrorTask] Uncompressing nvdcve-2.0-2009.json.gz
-2026-06-06 11:32:56,170 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2009.meta
-2026-06-06 11:32:56,927 INFO [NistMirrorTask] Downloading...
-2026-06-06 11:32:56,937 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2008.json.gz
-2026-06-06 11:32:57,156 INFO [NistMirrorTask] Downloading...
-2026-06-06 11:32:57,963 INFO [NistMirrorTask] Uncompressing nvdcve-2.0-2008.json.gz
-2026-06-06 11:34:47,904 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2008.meta
-2026-06-06 11:34:48,583 INFO [NistMirrorTask] Downloading...
-2026-06-06 11:34:48,593 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2007.json.gz
-2026-06-06 11:34:48,897 INFO [NistMirrorTask] Downloading...
-2026-06-06 11:34:49,538 INFO [NistMirrorTask] Uncompressing nvdcve-2.0-2007.json.gz
-2026-06-06 11:36:17,187 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2007.meta
-2026-06-06 11:36:17,626 INFO [NistMirrorTask] Downloading...
-2026-06-06 11:36:17,631 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2006.json.gz
-2026-06-06 11:36:17,776 INFO [NistMirrorTask] Downloading...
-2026-06-06 11:36:18,470 INFO [NistMirrorTask] Uncompressing nvdcve-2.0-2006.json.gz
-2026-06-06 11:37:53,485 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2006.meta
-2026-06-06 11:37:54,110 INFO [NistMirrorTask] Downloading...
-2026-06-06 11:37:54,111 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2005.json.gz
-2026-06-06 11:37:54,513 INFO [NistMirrorTask] Downloading...
-2026-06-06 11:37:55,004 INFO [NistMirrorTask] Uncompressing nvdcve-2.0-2005.json.gz
-2026-06-06 11:39:03,330 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2005.meta
-2026-06-06 11:39:03,814 INFO [NistMirrorTask] Downloading...
-2026-06-06 11:39:03,816 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2004.json.gz
-2026-06-06 11:39:04,126 INFO [NistMirrorTask] Downloading...
-2026-06-06 11:39:04,784 INFO [NistMirrorTask] Uncompressing nvdcve-2.0-2004.json.gz
-2026-06-06 11:39:47,483 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2004.meta
-2026-06-06 11:39:47,709 INFO [NistMirrorTask] Downloading...
-2026-06-06 11:39:47,710 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2003.json.gz
-2026-06-06 11:39:48,099 INFO [NistMirrorTask] Downloading...
-2026-06-06 11:39:48,172 INFO [NistMirrorTask] Uncompressing nvdcve-2.0-2003.json.gz
-2026-06-06 11:40:08,462 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2003.meta
-2026-06-06 11:40:08,866 INFO [NistMirrorTask] Downloading...
-2026-06-06 11:40:08,868 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2002.json.gz
-2026-06-06 11:40:09,066 INFO [NistMirrorTask] Downloading...
-2026-06-06 11:40:09,232 INFO [NistMirrorTask] Uncompressing nvdcve-2.0-2002.json.gz
-2026-06-06 11:41:33,931 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-2002.meta
-2026-06-06 11:41:34,364 INFO [NistMirrorTask] Downloading...
-2026-06-06 11:41:34,365 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-modified.json.gz
-2026-06-06 11:41:34,506 INFO [NistMirrorTask] Downloading...
-2026-06-06 11:41:35,116 INFO [NistMirrorTask] Uncompressing nvdcve-2.0-modified.json.gz
-2026-06-06 11:42:07,785 INFO [NistMirrorTask] Initiating download of https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-modified.meta
-2026-06-06 11:42:08,126 INFO [NistMirrorTask] Downloading...
-2026-06-06 11:42:08,127 INFO [NistMirrorTask] NIST mirroring complete
-2026-06-06 11:42:08,128 INFO [NistMirrorTask] Time spent (d/l):   24818ms
-2026-06-06 11:42:08,128 INFO [NistMirrorTask] Time spent (parse): 5087269ms
-2026-06-06 11:42:08,128 INFO [NistMirrorTask] Time spent (total): 5141075ms
-2026-06-06 11:42:08,139 INFO [EpssMirrorTask] Starting EPSS mirroring task
-2026-06-06 11:42:08,139 INFO [EpssMirrorTask] Mirrored data directory created successfully
-2026-06-06 11:42:08,139 INFO [EpssMirrorTask] Initiating download of https://epss.cyentia.com/epss_scores-current.csv.gz
-2026-06-06 11:42:10,069 INFO [EpssMirrorTask] Downloading...
-2026-06-06 11:43:10,137 ERROR [EpssMirrorTask] Download failed : Read timed out
-2026-06-06 11:43:10,138 INFO [EpssMirrorTask] EPSS mirroring complete
-2026-06-06 11:43:10,138 INFO [EpssMirrorTask] Time spent (d/l):   1930ms
-2026-06-06 11:43:10,138 INFO [EpssMirrorTask] Time spent (parse): 0ms
-2026-06-06 11:43:10,138 INFO [EpssMirrorTask] Time spent (total): 61999ms
-2026-06-07 17:42:07,756 ERROR [LoggableUncaughtExceptionHandler] An unknown error occurred in an asynchronous event or notification thread
-2026-06-07 17:43:39,050 ERROR [LoggableUncaughtExceptionHandler] An unknown error occurred in an asynchronous event or notification thread
-2026-06-07 17:50:14,217 ERROR [LoggableUncaughtExceptionHandler] An unknown error occurred in an asynchronous event or notification thread
+#####################################################
+# This Docker Compose file contains two services
+#    Dependency-Track API Server
+#    Dependency-Track FrontEnd
+#####################################################
+
+services:
+  apiserver:
+    image: dependencytrack/apiserver
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # The Dependency-Track container can be configured using any of the
+    # available configuration properties defined in:
+    # https://docs.dependencytrack.org/getting-started/configuration/
+    # All properties are upper case with periods replaced by underscores.
+    #
+    # Database Properties
+    #   ALPINE_DATABASE_MODE: "external"
+    #   ALPINE_DATABASE_URL: "jdbc:postgresql://postgres10:5432/dtrack"
+    #   ALPINE_DATABASE_DRIVER: "org.postgresql.Driver"
+    #   ALPINE_DATABASE_USERNAME: "dtrack"
+    #   ALPINE_DATABASE_PASSWORD: "changeme"
+    #   ALPINE_DATABASE_POOL_ENABLED: "true"
+    #   ALPINE_DATABASE_POOL_MAX_SIZE: "20"
+    #   ALPINE_DATABASE_POOL_MIN_IDLE: "10"
+    #   ALPINE_DATABASE_POOL_IDLE_TIMEOUT: "300000"
+    #   ALPINE_DATABASE_POOL_MAX_LIFETIME: "600000"
+    #
+    # Optional LDAP Properties
+    #   ALPINE_LDAP_ENABLED: "true"
+    #   ALPINE_LDAP_SERVER_URL: "ldap://ldap.example.com:389"
+    #   ALPINE_LDAP_BASEDN: "dc=example,dc=com"
+    #   ALPINE_LDAP_SECURITY_AUTH: "simple"
+    #   ALPINE_LDAP_BIND_USERNAME: ""
+    #   ALPINE_LDAP_BIND_PASSWORD: ""
+    #   ALPINE_LDAP_AUTH_USERNAME_FORMAT: "%s@example.com"
+    #   ALPINE_LDAP_ATTRIBUTE_NAME: "userPrincipalName"
+    #   ALPINE_LDAP_ATTRIBUTE_MAIL: "mail"
+    #   ALPINE_LDAP_GROUPS_FILTER: "(&(objectClass=group)(objectCategory=Group))"
+    #   ALPINE_LDAP_USER_GROUPS_FILTER: "(member:1.2.840.113556.1.4.1941:={USER_DN})"
+    #   ALPINE_LDAP_GROUPS_SEARCH_FILTER: "(&(objectClass=group)(objectCategory=Group)(cn=*{SEARCH_TERM}*))"
+    #   ALPINE_LDAP_USERS_SEARCH_FILTER: "(&(objectClass=user)(objectCategory=Person)(cn=*{SEARCH_TERM}*))"
+    #   ALPINE_LDAP_USER_PROVISIONING: "false"
+    #   ALPINE_LDAP_TEAM_SYNCHRONIZATION: "false"
+    #
+    # Optional OpenID Connect (OIDC) Properties
+    #   ALPINE_OIDC_ENABLED: "true"
+    #   ALPINE_OIDC_ISSUER: "https://auth.example.com/auth/realms/example"
+    #   ALPINE_OIDC_CLIENT_ID: ""
+    #   ALPINE_OIDC_USERNAME_CLAIM: "preferred_username"
+    #   ALPINE_OIDC_TEAMS_CLAIM: "groups"
+    #   ALPINE_OIDC_USER_PROVISIONING: "true"
+    #   ALPINE_OIDC_TEAM_SYNCHRONIZATION: "true"
+    #
+    # Optional HTTP Proxy Settings
+    #   ALPINE_HTTP_PROXY_ADDRESS: "proxy.example.com"
+    #   ALPINE_HTTP_PROXY_PORT: "8888"
+    #   ALPINE_HTTP_PROXY_USERNAME: ""
+    #   ALPINE_HTTP_PROXY_PASSWORD: ""
+    #   ALPINE_NO_PROXY: ""
+    #
+    # Optional HTTP Outbound Connection Timeout Settings. All values are in seconds.
+    #   ALPINE_HTTP_TIMEOUT_CONNECTION: "30"
+    #   ALPINE_HTTP_TIMEOUT_SOCKET: "30"
+    #   ALPINE_HTTP_TIMEOUT_POOL: "60"
+    #
+    # Optional Cross-Origin Resource Sharing (CORS) Headers
+    #   ALPINE_CORS_ENABLED: "true"
+    #   ALPINE_CORS_ALLOW_ORIGIN: "*"
+    #   ALPINE_CORS_ALLOW_METHODS: "GET, POST, PUT, DELETE, OPTIONS"
+    #   ALPINE_CORS_ALLOW_HEADERS: "Origin, Content-Type, Authorization, X-Requested-With, Content-Length, Accept, Origin, X-Api-Key, X-Total-Count, *"
+    #   ALPINE_CORS_EXPOSE_HEADERS: "Origin, Content-Type, Authorization, X-Requested-With, Content-Length, Accept, Origin, X-Api-Key, X-Total-Count"
+    #   ALPINE_CORS_ALLOW_CREDENTIALS: "true"
+    #   ALPINE_CORS_MAX_AGE: "3600"
+    #
+    # Optional logging configuration
+    #   LOGGING_LEVEL: "INFO"
+    #   LOGGING_CONFIG_PATH: "logback.xml"
+    #
+    # Optional metrics properties
+    #   ALPINE_METRICS_ENABLED: "true"
+    #   ALPINE_METRICS_AUTH_USERNAME: ""
+    #   ALPINE_METRICS_AUTH_PASSWORD: ""
+    #
+    # Optional environmental variables to enable default notification publisher templates override and set the base directory to search for templates
+    #   DEFAULT_TEMPLATES_OVERRIDE_ENABLED: "false"
+    #   DEFAULT_TEMPLATES_OVERRIDE_BASE_DIRECTORY: "/data"
+    #
+    # Optional configuration for the Snyk analyzer
+    #   SNYK_THREAD_BATCH_SIZE: "10"
+    #
+    # Optional environmental variables to provide more JVM arguments to the API Server JVM, i.e. "-XX:ActiveProcessorCount=8"
+    #   EXTRA_JAVA_OPTIONS: ""
+    environment:
+      ALPINE_DATABASE_MODE: "external"
+      ALPINE_DATABASE_URL: "jdbc:postgresql://postgres:5432/dtrack"
+      ALPINE_DATABASE_DRIVER: "org.postgresql.Driver"
+      ALPINE_DATABASE_USERNAME: "dtrack"
+      ALPINE_DATABASE_PASSWORD: "dtrack"
+    deploy:
+      resources:
+        limits:
+          memory: 4g
+      restart_policy:
+        condition: on-failure
+    ports:
+    - '8081:8080'
+    volumes:
+    - 'dtrack-data:/data'
+    # Older versions of Podman Compose do not support the HEALTHCHECK directive
+    # that is defined in the image's Dockerfile. If you're using Podman and are
+    # facing healthcheck-related issues, try un-commenting the section below.
+    #
+    # healthcheck:
+    #   test: [ "CMD-SHELL", "curl -f -s --max-time 3 --noproxy '*' -o /dev/null http://127.0.0.1:8080$${CONTEXT}health" ]
+    #   interval: 30s
+    #   start_period: 60s
+    #   timeout: 3s
+    restart: unless-stopped
+
+  frontend:
+    image: dependencytrack/frontend
+    depends_on:
+      apiserver:
+        condition: service_healthy
+    environment:
+      # The base URL of the API server.
+      # NOTE:
+      #   * This URL must be reachable by the browsers of your users.
+      #   * The frontend container itself does NOT communicate with the API server directly, it just serves static files.
+      #   * When deploying to dedicated servers, please use the external IP or domain of the API server.
+      API_BASE_URL: "http://localhost:8081"
+      # OIDC_ISSUER: ""
+      # OIDC_CLIENT_ID: ""
+      # OIDC_SCOPE: ""
+      # OIDC_FLOW: ""
+      # OIDC_LOGIN_BUTTON_TEXT: ""
+      # volumes:
+      # - "/host/path/to/config.json:/app/static/config.json"
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: "dtrack"
+      POSTGRES_USER: "dtrack"
+      POSTGRES_PASSWORD: "dtrack"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    volumes:
+    - "postgres-data:/var/lib/postgresql/data"
+    restart: unless-stopped
+
+volumes:
+  dtrack-data: {}
+  postgres-data: {}
