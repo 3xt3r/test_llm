@@ -1,37 +1,113 @@
-Теперь всё ясно. В application.properties нет ни одного упоминания OSV, GitHub, NVD API — эти настройки хранятся только в базе данных, а не читаются из переменных окружения. Переменные окружения которые мы добавляли — DT 4.14.2 их просто игнорирует.
-Нужно настраивать через API напрямую в БД. Выполните все команды разом:
-bashAPI="http://localhost:8081/api/v1/configProperty"
-KEY="odt_WeFtwiB1_NVGyddcyg2GQTyOPHeQit6qMBNFnwxJM"
+Всё автоматически — ничего качать вручную не нужно. Docker сам скачает образы, Dependency-Track сам скачает базы уязвимостей.
+Вот пошаговая инструкция:
 
-# OSV — включить нужные экосистемы
-curl -s -X PUT "$API" -H "X-Api-Key: $KEY" -H "Content-Type: application/json" \
-  -d '{"groupName":"vuln-source","propertyName":"google.osv.enabled","propertyValue":"PyPI;npm;Maven;crates.io;NuGet;RubyGems;Go;Hex;Pub;Packagist","propertyType":"STRING"}'
+Шаг 1 — Убедись, что Docker установлен
+bashdocker --version
+docker compose version
+Если не установлен — скачай Docker Desktop.
 
-# GitHub — включить
-curl -s -X PUT "$API" -H "X-Api-Key: $KEY" -H "Content-Type: application/json" \
-  -d '{"groupName":"vuln-source","propertyName":"github.advisories.enabled","propertyValue":"true","propertyType":"BOOLEAN"}'
+Шаг 2 — Создай папку и файл
+bashmkdir dependency-track && cd dependency-track
+Создай файл docker-compose.yml:
+bashcat > docker-compose.yml << 'EOF'
+volumes:
+  postgres-data: {}
+  apiserver-data: {}
 
-# GitHub — токен
-curl -s -X PUT "$API" -H "X-Api-Key: $KEY" -H "Content-Type: application/json" \
-  -d '{"groupName":"vuln-source","propertyName":"github.advisories.access.token","propertyValue":"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","propertyType":"STRING"}'
+services:
 
-# NVD API — включить
-curl -s -X PUT "$API" -H "X-Api-Key: $KEY" -H "Content-Type: application/json" \
-  -d '{"groupName":"vuln-source","propertyName":"nvd.api.enabled","propertyValue":"true","propertyType":"BOOLEAN"}'
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: dtrack
+      POSTGRES_USER: dtrack
+      POSTGRES_PASSWORD: dtrack_local
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dtrack -d dtrack"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
 
-# NVD API — ключ
-curl -s -X PUT "$API" -H "X-Api-Key: $KEY" -H "Content-Type: application/json" \
-  -d '{"groupName":"vuln-source","propertyName":"nvd.api.key","propertyValue":"31DACAE2-4941-F111-836A-129478FCB64D","propertyType":"ENCRYPTEDSTRING"}'
-Затем запустить зеркалирование вручную изнутри контейнера:
-bash# OSV
-sudo docker exec dependency-track-apiserver-1 \
-  curl -s -X POST http://localhost:8080/api/v1/task/mirror/osv \
-  -H "X-Api-Key: odt_WeFtwiB1_NVGyddcyg2GQTyOPHeQit6qMBNFnwxJM"
+  apiserver:
+    image: dependencytrack/apiserver:latest
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ALPINE_DATABASE_MODE: external
+      ALPINE_DATABASE_URL: jdbc:postgresql://postgres:5432/dtrack
+      ALPINE_DATABASE_DRIVER: org.postgresql.Driver
+      ALPINE_DATABASE_USERNAME: dtrack
+      ALPINE_DATABASE_PASSWORD: dtrack_local
+      ALPINE_DATABASE_POOL_ENABLED: "true"
+      ALPINE_NVD_API_ENABLED: "true"
+      ALPINE_VULNERABILITY_ALIAS_SYNCHRONIZATION_ENABLED: "true"
+      ALPINE_WORKER_THREADS: "4"
+    ports:
+      - "8081:8080"
+    volumes:
+      - apiserver-data:/data
+    restart: unless-stopped
 
-# GitHub
-sudo docker exec dependency-track-apiserver-1 \
-  curl -s -X POST http://localhost:8080/api/v1/task/mirror/github \
-  -H "X-Api-Key: odt_WeFtwiB1_NVGyddcyg2GQTyOPHeQit6qMBNFnwxJM"
-И сразу смотреть логи:
-bashsudo docker logs dependency-track-apiserver-1 -f 2>&1 | grep -iE "osv|github|mirror|error"
-На этот раз должно появиться OsvDownloadTask с реальной загрузкой по экосистемам.
+  frontend:
+    image: dependencytrack/frontend:latest
+    depends_on:
+      - apiserver
+    environment:
+      API_BASE_URL: http://localhost:8081
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+EOF
+
+Шаг 3 — Запусти
+bashdocker compose up -d
+Docker скачает три образа (~1 GB суммарно) и запустит контейнеры.
+
+Шаг 4 — Жди готовности API-сервера
+bashdocker compose logs -f apiserver | grep -i "dependency-track is ready"
+Подождёт и выведет строку Dependency-Track is ready — это занимает 1–3 минуты. После этого нажми Ctrl+C.
+
+Шаг 5 — Открой UI и смени пароль
+Открой в браузере: http://localhost:8080
+
+Логин: admin
+Пароль: admin
+
+Сразу попросит сменить пароль — смени.
+
+Шаг 6 — Включи источники уязвимостей
+6.1. NVD API key (бесплатно, но необязательно)
+Без ключа работает, но медленнее. Если хочешь ключ:
+
+Перейди на https://nvd.nist.gov/developers/request-an-api-key
+Введи email → получишь ключ письмом
+В UI: Administration → Vulnerability Sources → NVD → вставь ключ → Save
+
+6.2. OSV ← главное для PURL/пакетов
+Administration → Vulnerability Sources → OSV
+→ Enable ✓
+→ Выбери свои экосистемы (Maven, npm, PyPI, Go, NuGet — что используешь)
+→ Save
+6.3. GitHub Advisories ← для open source пакетов
+
+Создай токен на https://github.com/settings/tokens → Generate new token (classic) → scope: read:packages
+В UI: Administration → Vulnerability Sources → GitHub Advisories → вставь токен → Enable → Save
+
+
+Шаг 7 — Дождись зеркалирования баз
+bashdocker compose logs -f apiserver | grep -iE "mirror|nvd|osv|github"
+NVD качается 20–40 минут (150k+ CVE). OSV и GitHub — быстрее. Прогресс видно в логах.
+Или смотри прямо в UI: Administration → Tasks — там список задач и статус каждой.
+
+Шаг 8 — Проверь, что всё работает
+
+Projects → Create Project → дай название
+Components → Add Component → например, Name: lodash, Version: 4.17.11, PURL: pkg:npm/lodash@4.17.11
+Через минуту компонент должен показать найденные CVE
+
+
+После этого всё готово к работе. Скажи, какой у тебя стек — помогу настроить генерацию SBOM и загрузку в Dependency-Track.
