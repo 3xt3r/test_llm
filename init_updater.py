@@ -1,2 +1,5 @@
-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
-31DACAE2-4941-F111-836A-129478FCB64D
+sudo docker compose up -d
+sudo docker compose logs -f
+cd ~/Desktop/dependency-track-local
+sudo docker compose up -d
+sudo docker compose logs -f apiserver | grep -Ei "osv|github|ghsa|internal|analyz|vulnerab|purl|cpe|error|warn|401|403"
