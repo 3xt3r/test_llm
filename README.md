@@ -1,42 +1,25 @@
-[*] Запускаю Trivy:
-    trivy fs --format cyclonedx --output /home/kali/Desktop/results/2026-06-27/express__v4.22.2/sbom/repack.cdx.json /home/kali/Desktop/results/2026-06-27/express__v4.22.2/unpacked
-2026-06-27T00:11:39+03:00	INFO	"--format cyclonedx" disables security scanning. Specify "--scanners vuln" explicitly if you want to include vulnerabilities in the "cyclonedx" report.
-2026-06-27T00:11:41+03:00	INFO	[npm] To collect the license information of packages, "npm install" needs to be performed beforehand	dir="extracted/d1_promise-all-reject-late-1.0.1.tgz_d8370e0f30/package/node_modules"
-2026-06-27T00:11:41+03:00	INFO	[npm] To collect the license information of packages, "npm install" needs to be performed beforehand	dir="extracted/d2_promise-all-reject-late-1.0.1.tgz_9281e7edb3/package/node_modules"
-2026-06-27T00:11:41+03:00	INFO	Suppressing dependencies for development and testing. To display them, try the '--include-dev-deps' flag.
-2026-06-27T00:11:41+03:00	INFO	Number of language-specific files	num=2
-
-📣 Notices:
-  - Version 0.71.2 of Trivy is now available, current version is 0.68.2
-
-To suppress version checks, run Trivy scans with the --skip-version-check flag
-
-[+] Готово: /home/kali/Desktop/results/2026-06-27/express__v4.22.2/sbom/repack.cdx.json
-[+] Trivy CycloneDX SBOM собран по распакованному каталогу: /home/kali/Desktop/results/2026-06-27/express__v4.22.2/unpacked
-
-[binary-repack] Done.
-  binary SBOM : /home/kali/Desktop/results/2026-06-27/express__v4.22.2/sbom/binary.json
-  repack SBOM : /home/kali/Desktop/results/2026-06-27/express__v4.22.2/sbom/repack.cdx.json
-  debug files : /home/kali/Desktop/results/2026-06-27/express__v4.22.2/debug/distrib/
-/home/kali/Desktop/venv/lib/python3.12/site-packages/urllib3/connectionpool.py:1110: InsecureRequestWarning: Unverified HTTPS request is being made to host '192.168.225.95'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings
-  warnings.warn(
-[dt] uploaded binary.json → project 219e4e29-fc76-4bfe-bce3-97678bacb99d (token=aa89eb71-c85f-4d85-9f1a-9445360ccca4)
-/home/kali/Desktop/venv/lib/python3.12/site-packages/urllib3/connectionpool.py:1110: InsecureRequestWarning: Unverified HTTPS request is being made to host '192.168.225.95'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings
-  warnings.warn(
-[dt] uploaded repack.cdx.json → project 134bf438-f8a0-4ef9-903e-95a4691d601d (token=d1d1f1fc-8442-4dac-b162-169db7554011)
-
-============================================================
-[scan-full] Merging 2 SBOM(s) → /home/kali/Desktop/results/2026-06-27/express__v4.22.2/sbom/merged.json
-  binary.json
-  repack.cdx.json
-============================================================
-
-[scan-full] Done.
-  merged SBOM  : /home/kali/Desktop/results/2026-06-27/express__v4.22.2/sbom/merged.json  (0 components)
-  binary.json
-  repack.cdx.json
-  debug files  : /home/kali/Desktop/results/2026-06-27/express__v4.22.2/debug/distrib/
-2026-06-27 00:11:43 | ERROR   | [distrib] [express__v4.22.2__NDR_alt] scan failed rc=1
-2026-06-27 00:11:43 | INFO    | [distrib] all distrib threads finished
-2026-06-27 00:11:44 | INFO    | run log written: /home/kali/Desktop/results/2026-06-27/run.log
-2026-06-27 00:11:44 | ERROR   | 1/1 scan(s) failed
+1:50:50 [ERROR] stderr: Traceback (most recent call last):
+  File "/home/kali/Desktop/oss_checks/instruments/extract/extract.py", line 9, in <module>
+    import rarfile
+ModuleNotFoundError: No module named 'rarfile'
+2026-06-27 11:50:50 | ERROR   |     [FAIL] scanner.py: exited with code 1
+2026-06-27 11:50:50 | INFO    |   moving results: /home/kali/Desktop/jobs/express/jobs/f9738d11062b4a5baeaaa78fde8390f5 -> /home/kali/Desktop/results/2026-06-27/express__v4.22.2
+2026-06-27 11:50:50 | INFO    | [distrib] started thread for express / v4.22.2 / NDR_alt
+2026-06-27 11:50:50 | ERROR   |   [FAIL] express / v4.22.2: exited with code 1
+2026-06-27 11:50:50 | INFO    | [distrib] waiting for 1 distrib thread(s) to finish...
+2026-06-27 11:50:51 | INFO    | [distrib] [express__v4.22.2__NDR_alt] found orig project 'express__v4.22.2-orig' -> a837cbdd-44ee-465f-aeb7-5834b79fe86a
+2026-06-27 11:50:51 | INFO    | [dt] reusing existing project 'express__v4.22.2__NDR_alt__packages':v4.22.2 -> c9de8313-e76e-4bae-a77a-8e59fd808787
+2026-06-27 11:50:51 | INFO    | [distrib] [express__v4.22.2__NDR_alt] project 'express__v4.22.2__NDR_alt__packages' -> c9de8313-e76e-4bae-a77a-8e59fd808787
+2026-06-27 11:50:51 | INFO    | [dt] reusing existing project 'express__v4.22.2__NDR_alt__binary':v4.22.2 -> 219e4e29-fc76-4bfe-bce3-97678bacb99d
+2026-06-27 11:50:51 | INFO    | [distrib] [express__v4.22.2__NDR_alt] project 'express__v4.22.2__NDR_alt__binary' -> 219e4e29-fc76-4bfe-bce3-97678bacb99d
+2026-06-27 11:50:51 | INFO    | [dt] reusing existing project 'express__v4.22.2__NDR_alt__repack':v4.22.2 -> 134bf438-f8a0-4ef9-903e-95a4691d601d
+2026-06-27 11:50:51 | INFO    | [distrib] [express__v4.22.2__NDR_alt] project 'express__v4.22.2__NDR_alt__repack' -> 134bf438-f8a0-4ef9-903e-95a4691d601d
+2026-06-27 11:50:51 | INFO    | [distrib] [express__v4.22.2__NDR_alt] starting scan: /home/kali/Desktop/NDR (timeout=7200s)
+Traceback (most recent call last):
+  File "/home/kali/Desktop/oss_checks/distrib/sbom_tool.py", line 20, in <module>
+    from sbom_deb import cmd_deb, build_deb_parser
+ImportError: cannot import name 'build_deb_parser' from 'sbom_deb' (/home/kali/Desktop/oss_checks/distrib/sbom_deb.py)
+2026-06-27 11:50:51 | ERROR   | [distrib] [express__v4.22.2__NDR_alt] scan failed rc=1
+2026-06-27 11:50:51 | INFO    | [distrib] all distrib threads finished
+2026-06-27 11:50:51 | INFO    | run log written: /home/kali/Desktop/results/2026-06-27/run.log
+2026-06-27 11:50:51 | ERROR   | 1/1 scan(s) failed
