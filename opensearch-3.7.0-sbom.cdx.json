@@ -1,42 +1,293 @@
-*] Распаковано архивов: 1731
-[*] Извлечено файлов: 669805
-[*] Скопировано обычных файлов верхнего уровня: 2682
-[!] Ошибок распаковки: 2
-[*] Статистика распаковки: /home/kali/Desktop/results/2026-06-30/OpenSearch__3.6.0/debug/distrib/repack.stats.json
-[*] Запускаю Trivy:
-    trivy fs --format cyclonedx --output /home/kali/Desktop/results/2026-06-30/OpenSearch__3.6.0/sbom/repack.cdx.json --offline-scan --skip-check-update --skip-db-update --timeout 30m /home/kali/Desktop/results/2026-06-30/OpenSearch__3.6.0/unpacked
-2026-06-30T14:40:49+03:00	INFO	"--format cyclonedx" disables security scanning. Specify "--scanners vuln" explicitly if you want to include vulnerabilities in the "cyclonedx" report.
-2026-06-30T14:40:49+03:00	WARN	[pom] Dependency version cannot be determined. Child dependencies will not be found.	details="https://trivy.dev/docs/v0.68/guide/coverage/language/java#empty-dependency-version"
-2026-06-30T14:41:35+03:00	INFO	Number of language-specific files	num=1086
-
-📣 Notices:
-  - Version 0.72.0 of Trivy is now available, current version is 0.68.2
-
-To suppress version checks, run Trivy scans with the --skip-version-check flag
-
-[+] Готово: /home/kali/Desktop/results/2026-06-30/OpenSearch__3.6.0/sbom/repack.cdx.json
-[+] Trivy CycloneDX SBOM собран по распакованному каталогу: /home/kali/Desktop/results/2026-06-30/OpenSearch__3.6.0/unpacked
-
-[binary-repack] Done.
-  binary SBOM : /home/kali/Desktop/results/2026-06-30/OpenSearch__3.6.0/sbom/binary.json
-  repack SBOM : /home/kali/Desktop/results/2026-06-30/OpenSearch__3.6.0/sbom/repack.cdx.json
-  debug files : /home/kali/Desktop/results/2026-06-30/OpenSearch__3.6.0/debug/distrib/
-[scan-full] binary-repack step finished with code 1 — checking produced files
-[scan-full] warning: binary SBOM was not produced: /home/kali/Desktop/results/2026-06-30/OpenSearch__3.6.0/sbom/binary.json
-/home/kali/Desktop/venv/lib/python3.12/site-packages/urllib3/connectionpool.py:1110: InsecureRequestWarning: Unverified HTTPS request is being made to host '192.168.225.95'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings
-  warnings.warn(
-[dt] uploaded repack.cdx.json → project 5b135df0-54c6-4cbf-8c07-ede59bbf85f8 (token=dc147788-1d5d-401c-b3bf-2fb5ee5298b2)
-
-============================================================
-[scan-full] Merging 1 SBOM(s) → /home/kali/Desktop/results/2026-06-30/OpenSearch__3.6.0/sbom/merged.json
-  repack.cdx.json
-============================================================
-
-[scan-full] Done.
-  merged SBOM  : /home/kali/Desktop/results/2026-06-30/OpenSearch__3.6.0/sbom/merged.json  (1500 components)
-  repack.cdx.json
-  debug files  : /home/kali/Desktop/results/2026-06-30/OpenSearch__3.6.0/debug/distrib/
-2026-06-30 14:41:39 | ERROR   | [distrib] [OpenSearch__3.6.0__opensearch] scan failed rc=1
-2026-06-30 14:41:39 | INFO    | [distrib] all distrib threads finished
-2026-06-30 14:41:39 | INFO    | run log written: /home/kali/Desktop/results/2026-06-30/run.log
-2026-06-30 14:41:39 | INFO    | all 1 scan(s) completed successfully
+ks$ python  scheduler.py --config config.yml
+2026-06-30 14:55:49 | INFO    | timeouts: scanner=3600s, distrib_scan=7200s, deptrack=3600s
+2026-06-30 14:55:49 | INFO    | === product: OpenSearch ===
+2026-06-30 14:55:49 | INFO    | --- version: 3.6.0 ---
+2026-06-30 14:55:49 | INFO    |     using local source: /home/kali/Desktop/OpenSearch
+2026-06-30 14:55:49 | INFO    |   running scanner on /home/kali/Desktop/OpenSearch (DT project: OpenSearch__3.6.0, timeout=3600s)
+2026-06-30 14:55:49 | INFO    |   job_dir: /home/kali/Desktop/jobs/OpenSearch/jobs/5624b01113bb49a9aa3499d27619a492
+2026-06-30 14:55:49 | INFO    |     running: /home/kali/Desktop/venv/bin/python /home/kali/Desktop/oss_checks/scanner.py /home/kali/Desktop/OpenSearch --apply --deptrack --dt-project-name OpenSearch__3.6.0 --env-file /home/kali/Desktop/oss_checks/env --job-dir /home/kali/Desktop/jobs/OpenSearch/jobs/5624b01113bb49a9aa3499d27619a492
+14:55:51 [INFO] loaded .env: /home/kali/Desktop/oss_checks/env
+14:55:51 [INFO] [dt] auto-ensuring orig project 'OpenSearch__3.6.0-orig'...
+14:55:52 [INFO] [dt] reusing existing project 'OpenSearch__3.6.0-orig' -> 33ad7b77-1a85-473f-815e-ff805406d0b8
+14:55:52 [INFO] [dt] server version: 4.14.1 — parentUUID support: yes
+14:55:52 [INFO] [dt] auto-ensuring safe project 'OpenSearch__3.6.0 [safe]' (parent: 33ad7b77-1a85-473f-815e-ff805406d0b8)...
+14:55:52 [INFO] [dt] reusing existing project 'OpenSearch__3.6.0 [safe]' -> 7a58f1db-0be9-48c4-bffa-499e15d20d5d
+14:55:52 [INFO] scan root: /home/kali/Desktop/OpenSearch
+14:55:52 [INFO] working copy:              /home/kali/Desktop/OpenSearch
+14:55:52 [INFO] job directory:             /home/kali/Desktop/jobs/OpenSearch/jobs/5624b01113bb49a9aa3499d27619a492
+14:55:52 [INFO] dependency-track: enabled url=https://192.168.225.95 safe_project=7a58f1db-0be9-48c4-bffa-499e15d20d5d orig_project=33ad7b77-1a85-473f-815e-ff805406d0b8 insecure=True
+14:55:52 [INFO] created directory: /home/kali/Desktop/jobs
+14:55:52 [INFO] created directory: /home/kali/Desktop/jobs/OpenSearch/jobs/5624b01113bb49a9aa3499d27619a492
+14:55:52 [INFO] created directory: /home/kali/Desktop/jobs/OpenSearch/jobs/5624b01113bb49a9aa3499d27619a492/sbom
+14:55:52 [INFO] created directory: /home/kali/Desktop/jobs/OpenSearch/jobs/5624b01113bb49a9aa3499d27619a492/reports
+14:55:52 [INFO] created directory: /home/kali/Desktop/jobs/OpenSearch/jobs/5624b01113bb49a9aa3499d27619a492/appsec
+14:55:52 [INFO] created directory: /home/kali/Desktop/jobs/OpenSearch/jobs/5624b01113bb49a9aa3499d27619a492/appsec/asm
+14:55:52 [INFO] created directory: /home/kali/Desktop/jobs/OpenSearch/jobs/5624b01113bb49a9aa3499d27619a492/appsec/ecosystems
+14:55:52 [INFO] created directory: /home/kali/Desktop/jobs/OpenSearch/jobs/5624b01113bb49a9aa3499d27619a492/appsec/external_downloads
+14:55:52 [INFO] created directory: /home/kali/Desktop/jobs/OpenSearch/jobs/5624b01113bb49a9aa3499d27619a492/debug/sources
+14:55:52 [INFO] ============================================================
+14:55:52 [INFO] STAGE START: cleanup_root
+14:55:52 [INFO] ============================================================
+[cleanup] scanning: /home/kali/Desktop/OpenSearch
+[cleanup] done in 8.6s — removed 0 dirs, 0 files
+14:56:01 [INFO] STAGE DONE:  cleanup_root
+14:56:01 [INFO] ============================================================
+14:56:01 [INFO] STAGE START: ecosystem (lock-files scan + apply)
+14:56:01 [INFO] ============================================================
+14:56:07 [INFO] ecosystem report: /home/kali/Desktop/jobs/OpenSearch/jobs/5624b01113bb49a9aa3499d27619a492/appsec/ecosystems/lock_summary.json
+14:56:07 [INFO] lock suggestions: 204
+14:56:07 [INFO] [lock] [1/204] skipped (no command): build.gradle
+14:56:07 [INFO] [lock] [2/204] skipped (no command): qa/build.gradle
+14:56:07 [INFO] [lock] [3/204] skipped (no command): qa/os/build.gradle
+14:56:07 [INFO] [lock] [4/204] skipped (no command): qa/os/windows-2016/build.gradle
+14:56:07 [INFO] [lock] [5/204] skipped (no command): qa/os/ubuntu-1804/build.gradle
+14:56:07 [INFO] [lock] [6/204] skipped (no command): qa/os/oel-7/build.gradle
+14:56:07 [INFO] [lock] [7/204] skipped (no command): qa/os/sles-12/build.gradle
+14:56:07 [INFO] [lock] [8/204] skipped (no command): qa/os/fedora-29/build.gradle
+14:56:07 [INFO] [lock] [9/204] skipped (no command): qa/os/oel-6/build.gradle
+14:56:07 [INFO] [lock] [10/204] skipped (no command): qa/os/debian-8/build.gradle
+14:56:07 [INFO] [lock] [11/204] skipped (no command): qa/os/windows-2012r2/build.gradle
+14:56:07 [INFO] [lock] [12/204] skipped (no command): qa/os/fedora-28/build.gradle
+14:56:07 [INFO] [lock] [13/204] skipped (no command): qa/os/ubuntu-1604/build.gradle
+14:56:07 [INFO] [lock] [14/204] skipped (no command): qa/os/centos-7/build.gradle
+14:56:07 [INFO] [lock] [15/204] skipped (no command): qa/os/centos-6/build.gradle
+14:56:07 [INFO] [lock] [16/204] skipped (no command): qa/os/debian-9/build.gradle
+14:56:07 [INFO] [lock] [17/204] skipped (no command): qa/rolling-upgrade/build.gradle
+14:56:07 [INFO] [lock] [18/204] skipped (no command): qa/full-cluster-restart/build.gradle
+14:56:07 [INFO] [lock] [19/204] skipped (no command): qa/smoke-test-ingest-with-all-dependencies/build.gradle
+14:56:07 [INFO] [lock] [20/204] skipped (no command): qa/ccs-unavailable-clusters/build.gradle
+14:56:07 [INFO] [lock] [21/204] skipped (no command): qa/no-bootstrap-tests/build.gradle
+14:56:07 [INFO] [lock] [22/204] skipped (no command): qa/smoke-test-http/build.gradle
+14:56:07 [INFO] [lock] [23/204] skipped (no command): qa/smoke-test-plugins/build.gradle
+14:56:07 [INFO] [lock] [24/204] skipped (no command): qa/fips-compliance/build.gradle
+14:56:07 [INFO] [lock] [25/204] skipped (no command): qa/repository-multi-version/build.gradle
+14:56:07 [INFO] [lock] [26/204] skipped (no command): qa/multi-cluster-search/build.gradle
+14:56:07 [INFO] [lock] [27/204] skipped (no command): qa/wildfly/build.gradle
+14:56:07 [INFO] [lock] [28/204] skipped (no command): qa/evil-tests/build.gradle
+14:56:07 [INFO] [lock] [29/204] skipped (no command): qa/remote-clusters/build.gradle
+14:56:07 [INFO] [lock] [30/204] skipped (no command): qa/die-with-dignity/build.gradle
+14:56:07 [INFO] [lock] [31/204] skipped (no command): qa/smoke-test-ingest-disabled/build.gradle
+14:56:07 [INFO] [lock] [32/204] skipped (no command): qa/unconfigured-node-name/build.gradle
+14:56:07 [INFO] [lock] [33/204] skipped (no command): qa/smoke-test-multinode/build.gradle
+14:56:07 [INFO] [lock] [34/204] skipped (no command): qa/mixed-cluster/build.gradle
+14:56:07 [INFO] [lock] [35/204] skipped (no command): qa/verify-version-constants/build.gradle
+14:56:07 [INFO] [lock] [36/204] skipped (no command): qa/systemd-test/build.gradle
+14:56:07 [INFO] [lock] [37/204] skipped (no command): qa/logging-config/build.gradle
+14:56:07 [INFO] [lock] [38/204] skipped (no command): buildSrc/build.gradle
+14:56:07 [INFO] [lock] [39/204] skipped (no command): buildSrc/reaper/build.gradle
+14:56:07 [INFO] [lock] [40/204] skipped (no command): buildSrc/src/testKit/opensearch-build-resources/build.gradle
+14:56:07 [INFO] [lock] [41/204] skipped (no command): buildSrc/src/testKit/symbolic-link-preserving-tar/build.gradle
+14:56:07 [INFO] [lock] [42/204] skipped (no command): buildSrc/src/testKit/reaper/build.gradle
+14:56:07 [INFO] [lock] [43/204] skipped (no command): buildSrc/src/testKit/testingConventions/build.gradle
+14:56:07 [INFO] [lock] [44/204] skipped (no command): buildSrc/src/testKit/opensearch.build/build.gradle
+14:56:07 [INFO] [lock] [45/204] skipped (no command): buildSrc/src/testKit/thirdPartyAudit/build.gradle
+14:56:07 [INFO] [lock] [46/204] skipped (no command): buildSrc/src/testKit/thirdPartyAudit/sample_jars/build.gradle
+14:56:07 [INFO] [lock] [47/204] skipped (no command): buildSrc/src/integTest/resources/org/opensearch/gradle/internal/fake_git/remote/build.gradle
+14:56:07 [INFO] [lock] [48/204] skipped (no command): buildSrc/src/integTest/resources/org/opensearch/gradle/internal/fake_git/remote/distribution/archives/build.gradle
+14:56:07 [INFO] [lock] [49/204] skipped (no command): buildSrc/src/integTest/resources/org/opensearch/gradle/internal/fake_git/remote/distribution/archives/darwin-tar/build.gradle
+14:56:07 [INFO] [lock] [50/204] skipped (no command): buildSrc/src/integTest/resources/org/opensearch/gradle/internal/fake_git/remote/distribution/archives/oss-darwin-tar/build.gradle
+14:56:07 [INFO] [lock] [51/204] skipped (no command): buildSrc/src/integTest/resources/org/opensearch/gradle/internal/fake_git/remote/distribution/bwc/minor/build.gradle
+14:56:07 [INFO] [lock] [52/204] skipped (no command): buildSrc/src/integTest/resources/org/opensearch/gradle/internal/fake_git/remote/distribution/bwc/bugfix/build.gradle
+14:56:07 [INFO] [lock] [53/204] skipped (no command): modules/build.gradle
+14:56:07 [INFO] [lock] [54/204] skipped (no command): modules/opensearch-dashboards/build.gradle
+14:56:07 [INFO] [lock] [55/204] skipped (no command): modules/geo/build.gradle
+14:56:07 [INFO] [lock] [56/204] skipped (no command): modules/ingest-geoip/build.gradle
+14:56:07 [INFO] [lock] [57/204] skipped (no command): modules/transport-netty4/build.gradle
+14:56:07 [INFO] [lock] [58/204] skipped (no command): modules/ingest-common/build.gradle
+14:56:07 [INFO] [lock] [59/204] skipped (no command): modules/aggs-matrix-stats/build.gradle
+14:56:07 [INFO] [lock] [60/204] skipped (no command): modules/store-subdirectory/build.gradle
+14:56:07 [INFO] [lock] [61/204] skipped (no command): modules/mapper-extras/build.gradle
+14:56:07 [INFO] [lock] [62/204] skipped (no command): modules/rank-eval/build.gradle
+14:56:07 [INFO] [lock] [63/204] skipped (no command): modules/search-pipeline-common/build.gradle
+14:56:07 [INFO] [lock] [64/204] skipped (no command): modules/systemd/build.gradle
+14:56:07 [INFO] [lock] [65/204] skipped (no command): modules/parent-join/build.gradle
+14:56:07 [INFO] [lock] [66/204] skipped (no command): modules/lang-painless/build.gradle
+14:56:07 [INFO] [lock] [67/204] skipped (no command): modules/lang-painless/spi/build.gradle
+14:56:07 [INFO] [lock] [68/204] skipped (no command): modules/percolator/build.gradle
+14:56:07 [INFO] [lock] [69/204] skipped (no command): modules/repository-url/build.gradle
+14:56:07 [INFO] [lock] [70/204] skipped (no command): modules/reindex/build.gradle
+14:56:07 [INFO] [lock] [71/204] skipped (no command): modules/analysis-common/build.gradle
+14:56:07 [INFO] [lock] [72/204] skipped (no command): modules/lang-mustache/build.gradle
+14:56:07 [INFO] [lock] [73/204] skipped (no command): modules/cache-common/build.gradle
+14:56:07 [INFO] [lock] [74/204] skipped (no command): modules/lang-expression/build.gradle
+14:56:07 [INFO] [lock] [75/204] skipped (no command): modules/transport-grpc/build.gradle
+14:56:07 [INFO] [lock] [76/204] skipped (no command): modules/transport-grpc/spi/build.gradle
+14:56:07 [INFO] [lock] [77/204] skipped (no command): modules/autotagging-commons/build.gradle
+14:56:07 [INFO] [lock] [78/204] skipped (no command): modules/autotagging-commons/common/build.gradle
+14:56:07 [INFO] [lock] [79/204] skipped (no command): modules/autotagging-commons/spi/build.gradle
+14:56:07 [INFO] [lock] [80/204] skipped (no command): modules/ingest-user-agent/build.gradle
+14:56:07 [INFO] [lock] [81/204] skipped (no command): rest-api-spec/build.gradle
+14:56:07 [INFO] [lock] [82/204] skipped (no command): sandbox/build.gradle
+14:56:07 [INFO] [lock] [83/204] skipped (no command): sandbox/modules/build.gradle
+14:56:07 [INFO] [lock] [84/204] skipped (no command): sandbox/libs/build.gradle
+14:56:07 [INFO] [lock] [85/204] skipped (no command): sandbox/libs/analytics-framework/build.gradle
+14:56:07 [INFO] [lock] [86/204] skipped (no command): sandbox/plugins/build.gradle
+14:56:07 [INFO] [lock] [87/204] skipped (no command): sandbox/plugins/analytics-engine/build.gradle
+14:56:07 [INFO] [lock] [88/204] skipped (no command): sandbox/plugins/analytics-backend-lucene/build.gradle
+14:56:07 [INFO] [lock] [89/204] skipped (no command): sandbox/plugins/analytics-backend-datafusion/build.gradle
+14:56:07 [INFO] [lock] [90/204] skipped (no command): distribution/build.gradle
+14:56:07 [INFO] [lock] [91/204] skipped (no command): distribution/docker/build.gradle
+14:56:07 [INFO] [lock] [92/204] skipped (no command): distribution/docker/docker-arm64-export/build.gradle
+14:56:07 [INFO] [lock] [93/204] skipped (no command): distribution/docker/docker-export/build.gradle
+14:56:07 [INFO] [lock] [94/204] skipped (no command): distribution/docker/docker-ppc64le-export/build.gradle
+14:56:07 [INFO] [lock] [95/204] skipped (no command): distribution/docker/docker-build-context/build.gradle
+14:56:07 [INFO] [lock] [96/204] skipped (no command): distribution/docker/docker-riscv64-export/build.gradle
+14:56:07 [INFO] [lock] [97/204] skipped (no command): distribution/docker/docker-arm64-build-context/build.gradle
+14:56:07 [INFO] [lock] [98/204] skipped (no command): distribution/docker/docker-s390x-export/build.gradle
+14:56:07 [INFO] [lock] [99/204] skipped (no command): distribution/packages/build.gradle
+14:56:07 [INFO] [lock] [100/204] skipped (no command): distribution/packages/no-jdk-arm64-rpm/build.gradle
+14:56:07 [INFO] [lock] [101/204] skipped (no command): distribution/packages/arm64-deb/build.gradle
+14:56:07 [INFO] [lock] [102/204] skipped (no command): distribution/packages/no-jdk-arm64-deb/build.gradle
+14:56:07 [INFO] [lock] [103/204] skipped (no command): distribution/packages/arm64-rpm/build.gradle
+14:56:07 [INFO] [lock] [104/204] skipped (no command): distribution/packages/no-jdk-deb/build.gradle
+14:56:07 [INFO] [lock] [105/204] skipped (no command): distribution/packages/rpm/build.gradle
+14:56:07 [INFO] [lock] [106/204] skipped (no command): distribution/packages/arm64-no-jdk-deb/build.gradle
+14:56:07 [INFO] [lock] [107/204] skipped (no command): distribution/packages/no-jdk-rpm/build.gradle
+14:56:07 [INFO] [lock] [108/204] skipped (no command): distribution/packages/deb/build.gradle
+14:56:07 [INFO] [lock] [109/204] skipped (no command): distribution/packages/arm64-no-jdk-rpm/build.gradle
+14:56:07 [INFO] [lock] [110/204] skipped (no command): distribution/tools/java-version-checker/build.gradle
+14:56:07 [INFO] [lock] [111/204] skipped (no command): distribution/tools/plugin-cli/build.gradle
+14:56:07 [INFO] [lock] [112/204] skipped (no command): distribution/tools/launchers/build.gradle
+14:56:07 [INFO] [lock] [113/204] skipped (no command): distribution/tools/keystore-cli/build.gradle
+14:56:07 [INFO] [lock] [114/204] skipped (no command): distribution/tools/fips-demo-installer-cli/build.gradle
+14:56:07 [INFO] [lock] [115/204] skipped (no command): distribution/archives/build.gradle
+14:56:07 [INFO] [lock] [116/204] skipped (no command): distribution/archives/linux-arm64-tar/build.gradle
+14:56:07 [INFO] [lock] [117/204] skipped (no command): distribution/archives/no-jdk-linux-arm64-tar/build.gradle
+14:56:07 [INFO] [lock] [118/204] skipped (no command): distribution/archives/no-jdk-linux-ppc64le-tar/build.gradle
+14:56:07 [INFO] [lock] [119/204] skipped (no command): distribution/archives/no-jdk-freebsd-tar/build.gradle
+14:56:07 [INFO] [lock] [120/204] skipped (no command): distribution/archives/darwin-arm64-tar/build.gradle
+14:56:07 [INFO] [lock] [121/204] skipped (no command): distribution/archives/integ-test-zip/build.gradle
+14:56:07 [INFO] [lock] [122/204] skipped (no command): distribution/archives/freebsd-tar/build.gradle
+14:56:07 [INFO] [lock] [123/204] skipped (no command): distribution/archives/no-jdk-linux-tar/build.gradle
+14:56:07 [INFO] [lock] [124/204] skipped (no command): distribution/archives/darwin-tar/build.gradle
+14:56:07 [INFO] [lock] [125/204] skipped (no command): distribution/archives/no-jdk-linux-riscv64-tar/build.gradle
+14:56:07 [INFO] [lock] [126/204] skipped (no command): distribution/archives/linux-tar/build.gradle
+14:56:07 [INFO] [lock] [127/204] skipped (no command): distribution/archives/linux-riscv64-tar/build.gradle
+14:56:07 [INFO] [lock] [128/204] skipped (no command): distribution/archives/no-jdk-windows-zip/build.gradle
+14:56:07 [INFO] [lock] [129/204] skipped (no command): distribution/archives/jre-linux-tar/build.gradle
+14:56:07 [INFO] [lock] [130/204] skipped (no command): distribution/archives/no-jdk-darwin-tar/build.gradle
+14:56:07 [INFO] [lock] [131/204] skipped (no command): distribution/archives/no-jdk-darwin-arm64-tar/build.gradle
+14:56:07 [INFO] [lock] [132/204] skipped (no command): distribution/archives/windows-zip/build.gradle
+14:56:07 [INFO] [lock] [133/204] skipped (no command): distribution/archives/linux-s390x-tar/build.gradle
+14:56:07 [INFO] [lock] [134/204] skipped (no command): distribution/archives/linux-ppc64le-tar/build.gradle
+14:56:07 [INFO] [lock] [135/204] skipped (no command): distribution/bwc/build.gradle
+14:56:07 [INFO] [lock] [136/204] skipped (no command): distribution/bwc/minor/build.gradle
+14:56:07 [INFO] [lock] [137/204] skipped (no command): distribution/bwc/maintenance/build.gradle
+14:56:07 [INFO] [lock] [138/204] skipped (no command): distribution/bwc/bugfix/build.gradle
+14:56:07 [INFO] [lock] [139/204] skipped (no command): distribution/bwc/staged/build.gradle
+14:56:07 [INFO] [lock] [140/204] skipped (no command): server/build.gradle
+14:56:07 [INFO] [lock] [141/204] skipped (no command): server/cli/build.gradle
+14:56:07 [INFO] [lock] [142/204] skipped (no command): benchmarks/build.gradle
+14:56:07 [INFO] [lock] [143/204] skipped (no command): doc-tools/build.gradle
+14:56:07 [INFO] [lock] [144/204] skipped (no command): doc-tools/missing-doclet/build.gradle
+14:56:07 [INFO] [lock] [145/204] skipped (no command): libs/build.gradle
+14:56:07 [INFO] [lock] [146/204] skipped (no command): libs/geo/build.gradle
+14:56:07 [INFO] [lock] [147/204] skipped (no command): libs/common/build.gradle
+14:56:07 [INFO] [lock] [148/204] skipped (no command): libs/plugin-classloader/build.gradle
+14:56:07 [INFO] [lock] [149/204] skipped (no command): libs/ssl-config/build.gradle
+14:56:07 [INFO] [lock] [150/204] skipped (no command): libs/task-commons/build.gradle
+14:56:07 [INFO] [lock] [151/204] skipped (no command): libs/dissect/build.gradle
+14:56:07 [INFO] [lock] [152/204] skipped (no command): libs/secure-sm/build.gradle
+14:56:07 [INFO] [lock] [153/204] skipped (no command): libs/x-content/build.gradle
+14:56:07 [INFO] [lock] [154/204] skipped (no command): libs/netty4/build.gradle
+14:56:07 [INFO] [lock] [155/204] skipped (no command): libs/core/build.gradle
+14:56:07 [INFO] [lock] [156/204] skipped (no command): libs/nio/build.gradle
+14:56:07 [INFO] [lock] [157/204] skipped (no command): libs/telemetry/build.gradle
+14:56:07 [INFO] [lock] [158/204] skipped (no command): libs/grok/build.gradle
+14:56:07 [INFO] [lock] [159/204] skipped (no command): libs/cli/build.gradle
+14:56:07 [INFO] [lock] [160/204] skipped (no command): libs/agent-sm/build.gradle
+14:56:07 [INFO] [lock] [161/204] skipped (no command): libs/agent-sm/agent-policy/build.gradle
+14:56:07 [INFO] [lock] [162/204] skipped (no command): libs/agent-sm/agent/build.gradle
+14:56:07 [INFO] [lock] [163/204] skipped (no command): libs/agent-sm/bootstrap/build.gradle
+14:56:07 [INFO] [lock] [164/204] skipped (no command): libs/compress/build.gradle
+14:56:07 [INFO] [lock] [165/204] skipped (no command): client/sniffer/build.gradle
+14:56:07 [INFO] [lock] [166/204] skipped (no command): client/client-benchmark-noop-api-plugin/build.gradle
+14:56:07 [INFO] [lock] [167/204] skipped (no command): client/rest/build.gradle
+14:56:07 [INFO] [lock] [168/204] skipped (no command): client/benchmark/build.gradle
+14:56:07 [INFO] [lock] [169/204] skipped (no command): client/rest-high-level/build.gradle
+14:56:07 [INFO] [lock] [170/204] skipped (no command): plugins/build.gradle
+14:56:07 [INFO] [lock] [171/204] skipped (no command): plugins/analysis-phonenumber/build.gradle
+14:56:07 [INFO] [lock] [172/204] skipped (no command): plugins/workload-management/build.gradle
+14:56:07 [INFO] [lock] [173/204] skipped (no command): plugins/workload-management/wlm-spi/build.gradle
+14:56:07 [INFO] [lock] [174/204] skipped (no command): plugins/analysis-phonetic/build.gradle
+14:56:07 [INFO] [lock] [175/204] skipped (no command): plugins/discovery-azure-classic/build.gradle
+14:56:07 [INFO] [lock] [176/204] skipped (no command): plugins/ingest-attachment/build.gradle
+14:56:07 [INFO] [lock] [177/204] skipped (no command): plugins/repository-hdfs/build.gradle
+14:56:07 [INFO] [lock] [178/204] skipped (no command): plugins/repository-gcs/build.gradle
+14:56:07 [INFO] [lock] [179/204] skipped (no command): plugins/mapper-size/build.gradle
+14:56:07 [INFO] [lock] [180/204] skipped (no command): plugins/analysis-ukrainian/build.gradle
+14:56:07 [INFO] [lock] [181/204] skipped (no command): plugins/analysis-nori/build.gradle
+14:56:07 [INFO] [lock] [182/204] skipped (no command): plugins/arrow-flight-rpc/build.gradle
+14:56:07 [INFO] [lock] [183/204] skipped (no command): plugins/ingestion-kinesis/build.gradle
+14:56:07 [INFO] [lock] [184/204] skipped (no command): plugins/ingestion-kafka/build.gradle
+14:56:07 [INFO] [lock] [185/204] skipped (no command): plugins/repository-azure/build.gradle
+14:56:07 [INFO] [lock] [186/204] skipped (no command): plugins/mapper-annotated-text/build.gradle
+14:56:07 [INFO] [lock] [187/204] skipped (no command): plugins/mapper-murmur3/build.gradle
+14:56:07 [INFO] [lock] [188/204] skipped (no command): plugins/cache-ehcache/build.gradle
+14:56:07 [INFO] [lock] [189/204] skipped (no command): plugins/repository-s3/build.gradle
+14:56:07 [INFO] [lock] [190/204] skipped (no command): plugins/store-smb/build.gradle
+14:56:07 [INFO] [lock] [191/204] skipped (no command): plugins/discovery-gce/build.gradle
+14:56:07 [INFO] [lock] [192/204] skipped (no command): plugins/discovery-gce/qa/build.gradle
+14:56:07 [INFO] [lock] [193/204] skipped (no command): plugins/discovery-gce/qa/gce/build.gradle
+14:56:07 [INFO] [lock] [194/204] skipped (no command): plugins/discovery-ec2/build.gradle
+14:56:07 [INFO] [lock] [195/204] skipped (no command): plugins/discovery-ec2/qa/build.gradle
+14:56:07 [INFO] [lock] [196/204] skipped (no command): plugins/discovery-ec2/qa/amazon-ec2/build.gradle
+14:56:07 [INFO] [lock] [197/204] skipped (no command): plugins/telemetry-otel/build.gradle
+14:56:07 [INFO] [lock] [198/204] skipped (no command): plugins/analysis-kuromoji/build.gradle
+14:56:07 [INFO] [lock] [199/204] skipped (no command): plugins/transport-reactor-netty4/build.gradle
+14:56:07 [INFO] [lock] [200/204] skipped (no command): plugins/crypto-kms/build.gradle
+14:56:07 [INFO] [lock] [201/204] skipped (no command): plugins/ingestion-fs/build.gradle
+14:56:07 [INFO] [lock] [202/204] skipped (no command): plugins/analysis-icu/build.gradle
+14:56:07 [INFO] [lock] [203/204] skipped (no command): plugins/analysis-smartcn/build.gradle
+14:56:07 [INFO] [lock] [204/204] skipped (no command): plugins/analysis-stempel/build.gradle
+14:56:07 [INFO] lock generation: ok=0, failed=0, skipped=204
+14:56:07 [INFO] STAGE DONE:  ecosystem
+14:56:07 [INFO] ============================================================
+14:56:07 [INFO] STAGE START: cplus_scan
+14:56:07 [INFO] ============================================================
+14:56:07 [INFO] [cplus] oss_checks_dir: /home/kali/Desktop/oss_checks
+14:56:07 [INFO] [cplus] cplus_scanner: /home/kali/Desktop/oss_checks/cpluschecks/scanner.py (exists=True)
+14:56:07 [INFO] [cplus] cplus_known (abs): /home/kali/Desktop/jobs/OpenSearch/jobs/5624b01113bb49a9aa3499d27619a492/sbom/cplus_sbom.json
+14:56:07 [INFO] [cplus] scanner: /home/kali/Desktop/oss_checks/cpluschecks/scanner.py
+14:56:07 [INFO] [cplus] scan_root: /home/kali/Desktop/OpenSearch (exists=True)
+14:56:07 [INFO] [cplus] output: /home/kali/Desktop/jobs/OpenSearch/jobs/5624b01113bb49a9aa3499d27619a492/sbom/cplus_sbom.json
+14:56:12 [INFO] [cplus] returncode: 0
+14:56:12 [INFO] [cplus] stdout: [INFO] root=/home/kali/Desktop/OpenSearch  checkers=94 workers=8
+[INFO] candidate_files=28
+[INFO] content cache ready in 0.03s
+[INFO] submodule scan disabled
+Scanning finished in 4.39s; total findings=0
+Known SBOM written to /home/kali/Desktop/jobs/OpenSearch/jobs/5624b01113bb49a9aa3499d27619a492/sbom/cplus_sbom.json
+Unknown SBOM written to /home/kali/Desktop/jobs/OpenSearch/jobs/5624b01113bb49a9aa3499d27619a492/sbom/cplus_sbom.unknown.json
+14:56:12 [INFO] [cplus] output file exists: True
+14:56:12 [INFO] [cplus] output file size: 307 bytes
+14:56:12 [INFO] [cplus] found 0 C/C++ component(s)
+14:56:12 [INFO] STAGE DONE:  cplus_scan
+14:56:12 [INFO] ============================================================
+14:56:12 [INFO] STAGE START: trivy
+14:56:12 [INFO] ============================================================
+[INFO] removed rust vendor dirs: 0
+[INFO] renamed Cargo.lock.in files: 0
+[INFO] hidden template pom.xml files: 0
+14:56:12 [INFO] RUN trivy fs . --scanners license --offline-scan --skip-db-update --format cyclonedx --output /home/kali/Desktop/jobs/OpenSearch/jobs/5624b01113bb49a9aa3499d27619a492/sbom/origsbom.json --timeout 30m  (cwd=/home/kali/Desktop/OpenSearch)
+[INFO] restored template pom.xml files: 0
+14:56:45 [WARNING] [cplus] no cplus sbom files to merge — skipping
+14:56:45 [INFO] STAGE DONE:  trivy
+14:56:45 [INFO] ============================================================
+14:56:45 [INFO] STAGE START: vuln_management
+14:56:45 [INFO] ============================================================
+14:56:45 [INFO] [normalize] processing: origsbom.json
+14:56:46 [INFO] [normalize] origsbom.json: components 5218→5218, vulnerabilities 0→0, filtered=0
+14:56:46 [INFO] [normalize] saved: /home/kali/Desktop/jobs/OpenSearch/jobs/5624b01113bb49a9aa3499d27619a492/debug/sources/origsbom/origsbom_normalized.json
+14:56:46 [INFO] [normalize] using normalized SBOM: /home/kali/Desktop/jobs/OpenSearch/jobs/5624b01113bb49a9aa3499d27619a492/debug/sources/origsbom/origsbom_normalized.json
+[dt] warning: failed to upload origsbom to orig project: 400 Client Error: Bad Request for url: https://192.168.225.95/api/v1/bom
+[dt] ===== enrich origsbom =====
+[dt] FAILED during origsbom enrichment: 400 Client Error: Bad Request for url: https://192.168.225.95/api/v1/bom
+14:56:49 [INFO] STAGE DONE:  vuln_management
+14:56:52 [INFO] external_downloads: 42 hit(s) found in /home/kali/Desktop/OpenSearch
+14:56:52 [INFO] external_downloads JSON report written: /home/kali/Desktop/jobs/OpenSearch/jobs/5624b01113bb49a9aa3499d27619a492/appsec/external_downloads/external_downloads_root.json
+14:56:53 [INFO] registry_sources: nothing found in /home/kali/Desktop/OpenSearch
+14:56:53 [INFO] [SKIP][maven-test] com.netflix.nebula:nebula-gradle-interop:3.1.0 (ref=c4e82e6c-6517-4539-8cde-5014da1a0702)
+14:56:53 [INFO] [SKIP][maven-test] com.netflix.nebula:nebula-gradle-interop:3.1.0 (ref=fd7f9fc8-2ad5-402b-b69e-4437ffcdb058)
+14:56:53 [INFO] [SKIP][maven-test] org.apache.lucene:lucene-test-framework:10.4.0 (ref=pkg:maven/org.apache.lucene/lucene-test-framework@10.4.0)
+14:56:53 [INFO] Found 407 unique (ecosystem, name, version) entries
