@@ -31,3 +31,5 @@ with open(file_path, 'w', encoding='utf-8') as f:
     json.dump(data, f, ensure_ascii=False, indent=2)
 
 print(f"Success.")
+
+{"status":400,"title":"The uploaded BOM is invalid","detail":"Schema validation failed","errors":["$.dependencies[498].dependsOn: must have only unique items in the array","$.dependencies[765].dependsOn: must have only unique items in the array","$.dependencies[1318].dependsOn: must have only unique items in the array","$.dependencies[1555].dependsOn: must have only unique items in the array","$.dependencies[1929].dependsOn: must have only unique items in the array","$.dependencies[2265].dependsOn: must have only unique items in the array","$.dependencies[3270].dependsOn: must have only unique items in the array","$.dependencies[3808].dependsOn: must have only unique items in the array","$.dependencies[4207].dependsOn: must have only unique items in the array","$.dependencies[6169].dependsOn: must have only unique items in the array"]}       
